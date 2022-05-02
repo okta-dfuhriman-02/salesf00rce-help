@@ -1,5 +1,5 @@
 /** @format */
-import { _, ApiError, Okta } from '../common';
+import { Okta } from '../common';
 
 const GOOGLE_IDP_ID = '0oa3cdpdvdd3BHqDA1d7';
 const LINKEDIN_IDP_ID = '0oa3cdljzgEyGBMez1d7';
@@ -17,76 +17,6 @@ const idpMap = {
 	[LINKEDIN_IDP_ID]: 'linkedin',
 	[FACEBOOK_IDP_ID]: 'facebook',
 	[SALESFORCE_IDP_ID]: 'salesforce',
-};
-
-const oAuthParamMap = {
-	clientId: 'client_id',
-	codeChallenge: 'code_challenge',
-	codeChallengeMethod: 'code_challenge_method',
-	display: 'display',
-	idp: 'idp',
-	idpScope: 'idp_scope',
-	loginHint: 'login_hint',
-	maxAge: 'max_age',
-	nonce: 'nonce',
-	prompt: 'prompt',
-	redirectUri: 'redirect_uri',
-	responseMode: 'response_mode',
-	responseType: 'response_type',
-	sessionToken: 'sessionToken',
-	state: 'state',
-	scopes: 'scope',
-	grantType: 'grant_type',
-};
-
-const buildAuthorizeParams = tokenParams => {
-	let params = {};
-
-	for (const [key, value] of Object.entries(tokenParams)) {
-		let oAuthKey = oAuthParamMap[key];
-
-		if (oAuthKey) {
-			if (oAuthKey === 'scope' && Array.isArray(value)) {
-				params[oAuthKey] = value.join(' ');
-			} else {
-				params[oAuthKey] = value;
-			}
-		}
-	}
-
-	if (params?.idp) {
-		params.display = 'popup';
-	}
-
-	params.response_mode = 'okta_post_message';
-
-	params = Okta.removeNils(params);
-
-	return Okta.toQueryString(params);
-};
-
-const generateAuthUrl = async (sdk, options) => {
-	const tokenParams = await sdk.token.prepareTokenParams(options);
-	const { issuer, authorizeUrl } = sdk.options || {};
-
-	const urls = Okta.getOAuthUrls(sdk, tokenParams);
-
-	const meta = {
-		issuer,
-		urls,
-		...tokenParams,
-	};
-
-	// Use the query params to build the authorize url
-
-	// Get authorizeUrl and issuer
-	const url = authorizeUrl ?? `${issuer}/v1/authorize`;
-
-	const authUrl = url + buildAuthorizeParams(tokenParams);
-
-	sdk.transactionManager.save(meta, { oauth: true });
-
-	return { authUrl, tokenParams };
 };
 
 const useAuthActions = () => {
@@ -301,8 +231,8 @@ const useAuthActions = () => {
 			}
 		};
 
-		const signInWithRedirect = async (dispatch, idp) => {
-			let options = {};
+		const signInWithRedirect = async (dispatch, options) => {
+			const { idp } = options || {};
 
 			if (dispatch) {
 				dispatch({ type: 'LOGIN_WITH_REDIRECT_STARTED' });
@@ -320,7 +250,7 @@ const useAuthActions = () => {
 
 		const login = async (dispatch, props) => {
 			try {
-				const { username, password, idp } = props || {};
+				const { username, password, idp, isSignUp = false } = props || {};
 				// eslint-disable-next-line camelcase
 
 				if (username && password) {
@@ -347,9 +277,9 @@ const useAuthActions = () => {
 					const hasSession = await oktaAuth.session.exists();
 
 					if (!hasSession) {
-						const loginHint = props?.loginhint;
+						const loginHint = isSignUp ? 'signup' : props?.loginhint;
 
-						return await signInWithRedirect({ loginHint });
+						return await signInWithRedirect(dispatch, { idp, loginHint });
 					}
 
 					return await silentAuth(dispatch, { hasSession });
@@ -416,307 +346,17 @@ const useAuthActions = () => {
 			}
 		};
 
-		const doUserLinking = async (dispatch, { tokens }) => {
-			dispatch({ type: 'USER_LINK_PENDING' });
-
-			const primaryAccessToken = await oktaAuth.getAccessToken();
-
-			const {
-				payload: { uid: primaryUid },
-			} = await oktaAuth.token.decode(primaryAccessToken);
-
-			const {
-				accessToken: { accessToken: linkAccessToken },
-			} = tokens || {};
-
-			const options = {
-				method: 'post',
-				headers: {
-					Authorization: `Bearer ${primaryAccessToken}`,
-				},
-				body: JSON.stringify({ linkWith: linkAccessToken }),
-			};
-
-			const url = `${window.location.origin}/api/v1/users/${primaryUid}/identities`;
-
-			const response = await fetch(url, options);
-
-			if (!response.ok) {
-				throw new Error(await response.json());
-			}
-
-			const { tokens: freshTokens } = await oktaAuth.token.getWithoutPrompt();
-
-			if (!freshTokens) {
-				return dispatch({
-					type: 'USER_LINK_FAILED',
-					error: `Unable to obtain fresh tokens. Something went wrong!`,
-				});
-			}
-
-			// Update the authState w/ the new tokens
-			await oktaAuth.tokenManager.setTokens(freshTokens);
-
-			// Because isPendingAccountLink === true a getUserInfo() will NOT be triggered.
-			// So silently update userInfo
-			const { sub: userId } = await getUserInfoSync();
-
-			// And then silently update user
-			const user = await getUserSync(userId);
-
-			const { profile = {}, credentials = [], linkedUsers = [] } = user || {};
-
-			delete user.profile;
-			delete user.credentials;
-			delete user.linkedUsers;
-
-			return dispatch({
-				type: 'USER_LINK_SUCCEEDED',
-				payload: { profile: { ...user, ...profile }, credentials, linkedUsers },
-			});
-		};
-
-		const linkModalCodeExchange = async (dispatch, data) => {
-			dispatch({ type: 'USER_LINK_MODAL_CODE_EXCHANGE_STARTED' });
-
-			const { state, code: authorizationCode, interaction_code: interactionCode } = data || {};
-
-			const tokenParams = oktaAuth.transactionManager.load({
-				oauth: true,
-				pkce: true,
-				state,
-			});
-
-			const response = await oktaAuth.token.exchangeCodeForTokens({
-				...tokenParams,
-				authorizationCode,
-				interactionCode,
-			});
-
-			if (!response?.tokens) {
-				return dispatch({
-					type: 'USER_LINK_MODAL_CODE_EXCHANGE_FAILED',
-					error: `No tokens in response. Something went wrong! [${response}]`,
-				});
-			}
-
-			dispatch({ type: 'USER_LINK_MODAL_CODE_EXCHANGED' });
-
-			return await doUserLinking(dispatch, { tokens: response.tokens });
-		};
-
-		const linkUserInteractive = async (dispatch, options) => {
-			const { data, idp, display } = options || {};
-
-			if (!_.isEmpty(data)) {
-				return await linkModalCodeExchange(dispatch, data);
-			} else if (display && display === 'popup') {
-				dispatch({ type: 'USER_LINK_POPUP_STARTED' });
-
-				const scopes = oktaAuth.options.scopes;
-
-				const requestOptions = {
-					idp: idpMap[idp],
-					prompt: 'login',
-					scopes: [...scopes, 'user:link'],
-				};
-
-				if (idp === 'email' || idp === 'password') {
-					delete requestOptions.idp;
-
-					requestOptions['loginHint'] = 'email';
-				}
-
-				const response = await oktaAuth.token.getWithPopup(requestOptions);
-
-				const { tokens } = response || {};
-
-				if (!tokens) {
-					return dispatch({
-						type: 'USER_LINK_POPUP_FAILED',
-						error: `No tokens in response. Something went wrong! [${response}]`,
-					});
-				}
-
-				dispatch({ type: 'USER_LINK_POPUP_CODE_EXCHANGED' });
-
-				return await doUserLinking(dispatch, { tokens });
-			} else {
-				dispatch({ type: 'USER_LINK_MODAL_STARTED' });
-
-				const { authUrl, tokenParams } = await generateAuthUrl(oktaAuth, {
-					idp: idpMap[idp],
-					prompt: 'login',
-				});
-
-				if (authUrl && tokenParams) {
-					return dispatch({
-						type: 'USER_LINK_MODAL_PARAMS_GENERATED',
-						payload: { authUrl, tokenParams },
-					});
-				}
-			}
-		};
-
-		const linkUser = async (dispatch, options) => {
-			try {
-				const { idp, display } = options || {};
-
-				if (display) {
-					return await linkUserInteractive(dispatch, options);
-				} else {
-					// 1) Update the redirect_uri. This will need to be restored after!
-					const LINK_REDIRECT_URI = `${window.location.origin}/identities/callback`;
-
-					oktaAuth.options.redirectUri = LINK_REDIRECT_URI;
-
-					if (oktaAuth.isLoginRedirect()) {
-						dispatch({
-							type: 'USER_LINK_PENDING',
-						});
-
-						const primaryAccessToken = oktaAuth.getAccessToken();
-
-						// The `sub` claim will always be the subject of the accessToken. The `uid` will represent that user that is actually logged in.
-						const {
-							payload: { uid },
-						} = await oktaAuth.token.decode(primaryAccessToken);
-
-						await oktaAuth.handleLoginRedirect();
-
-						const linkAccessToken = oktaAuth.getAccessToken();
-
-						const requestOptions = {
-							method: 'post',
-							headers: {
-								Authorization: `Bearer ${primaryAccessToken}`,
-							},
-							body: JSON.stringify({
-								linkWith: linkAccessToken,
-							}),
-						};
-
-						const url = `${window.location.origin}/api/v1/users/${uid}/identities`;
-
-						const response = await fetch(url, requestOptions);
-
-						if (!response.ok) {
-							throw new Error(await response.json());
-						}
-
-						await oktaAuth.tokenManager.renew('accessToken');
-
-						dispatch({
-							type: 'USER_LINK_SUCCEEDED',
-						});
-
-						// restore the redirect_uri
-						oktaAuth.options.redirectUri = `${window.location.origin}/login/callback`;
-
-						return;
-					} else {
-						const scopes = oktaAuth.options.scopes;
-
-						dispatch({
-							type: 'USER_LINK_STARTED',
-						});
-
-						console.info(' ===== CURRENT ORIGINAL URI ===== ');
-						console.log(oktaAuth.getOriginalUri());
-
-						// Ensures we reroute to the /settings page where we started.
-						await oktaAuth.setOriginalUri(window.location.href);
-
-						console.info(' ===== NOW RETURNING TO ===== ');
-						console.log(oktaAuth.getOriginalUri());
-
-						const requestOptions = {
-							idp: idpMap[idp],
-							prompt: 'login',
-							scopes: [...scopes, 'user:link'],
-						};
-
-						if (idp === 'email' || idp === 'password') {
-							delete requestOptions.idp;
-
-							requestOptions['loginHint'] = 'email';
-						}
-						console.log(requestOptions);
-
-						await oktaAuth.signInWithRedirect(requestOptions);
-					}
-				}
-
-				// call /api/v1/users/{{userId}}/identities
-			} catch (error) {
-				if (dispatch) {
-					dispatch({ type: 'USER_LINK_FAILED', error });
-				} else {
-					throw new Error(error);
-				}
-			}
-		};
-
-		const unlinkUser = async (dispatch, credential) => {
-			try {
-				dispatch({ type: 'USER_UNLINK_STARTED' });
-
-				const {
-					id,
-					provider: { id: idpId },
-					isLoggedIn,
-				} = credential;
-
-				if (isLoggedIn) {
-					throw new Error('Cannot disconnect the currently logged in account.');
-				}
-
-				const baseUrl = `${window.location.origin}/api/v1/users/${id}/identities`;
-
-				const url = idpId ? baseUrl + `/${idpId}` : baseUrl;
-
-				const options = {
-					method: 'delete',
-					headers: {
-						authorization: `Bearer ${oktaAuth.getAccessToken()}`,
-					},
-				};
-
-				const response = await fetch(url, options);
-
-				if (response.status !== 204) {
-					throw new ApiError({
-						statusCode: response.statusCode,
-						message: `Unable to unlink user ${id}`,
-						json: (await response.json()) || '',
-					});
-				}
-
-				await oktaAuth.tokenManager.renew('accessToken');
-
-				return dispatch({ type: 'USER_UNLINK_SUCCEEDED', item: credential });
-			} catch (error) {
-				if (dispatch) {
-					dispatch({ type: 'USER_UNLINK_FAILED', error });
-				} else {
-					throw new Error(error);
-				}
-			}
-		};
-
 		return {
 			getUserSync,
 			getUser,
 			getUserInfo,
 			isAuthenticated,
-			linkUser,
 			login,
 			logout,
 			signInWithRedirect,
 			silentAuth,
 			toggleEmailAuth,
 			toggleSignUp,
-			unlinkUser,
 		};
 	} catch (error) {
 		// console.error(`init error [${error}]`);

@@ -13,17 +13,6 @@ const initialLoginState = {
 	...initialLoginFormState,
 };
 
-const initialAuthModalState = {
-	isVisibleAuthModal: false,
-	isPendingAuthModalLoad: true,
-	isVisibleIframe: false,
-};
-
-const initialAccountLinkState = {
-	isPendingAccountLink: false,
-	...initialAuthModalState,
-};
-
 const initialUserState = {
 	isPendingUserFetch: false,
 	isPendingUserInfoFetch: false,
@@ -41,7 +30,6 @@ const initializeState = () => {
 
 		errors: [],
 		...initialLoginState,
-		...initialAccountLinkState,
 		...initialUserState,
 	};
 
@@ -254,97 +242,12 @@ export const AuthReducer = (state, action) => {
 
 				return { ...state, ...tempState, ...action?.payload };
 
-			// USER LINK
-			case 'USER_LINK_MODAL_CODE_EXCHANGED':
-				tempState = {
-					...initialAuthModalState,
-				};
-
-				return { ...state, ...tempState, ...action?.payload };
-			case 'USER_LINK_MODAL_PARAMS_GENERATED':
-				tempState = {
-					isVisibleIframe: true,
-				};
-
-				return { ...state, ...tempState, ...action?.payload };
-			case 'USER_LINK_MODAL_CANCELLED':
-				tempState = {
-					...initialAccountLinkState,
-				};
-
-				return { ...state, ...tempState, ...action?.payload };
-			case 'USER_LINK_MODAL_LOADED':
-				tempState = {
-					isPendingAuthModalLoad: false,
-				};
-
-				return { ...state, ...tempState, ...action?.payload };
-			case 'USER_LINK_MODAL_STARTED':
-				tempState = {
-					isPendingAccountLink: true,
-					isVisibleAuthModal: true,
-				};
-
-				return { ...state, ...tempState, ...action?.payload };
-			case 'USER_LINK_POPUP_CODE_EXCHANGED':
-			case 'USER_LINK_PENDING':
-				tempState = {
-					isPendingAccountLink: true,
-				};
-
-				return { ...state, ...tempState, ...action?.payload };
-			case 'USER_LINK_MODAL_CODE_EXCHANGE_STARTED':
-			case 'USER_LINK_POPUP_STARTED':
-			case 'USER_LINK_STARTED':
-				tempState = {
-					isPendingAccountLink: true,
-				};
-				const newState = { ...state, ...tempState, ...action?.payload };
-
-				localStorage.setItem('app_state', JSON.stringify(newState));
-
-				return newState;
-			case 'USER_LINK_SUCCEEDED':
-				tempState = {
-					...initialUserState,
-					...initialAccountLinkState,
-					isStaleUserInfo: true,
-				};
-
-				localStorage.removeItem('app_state');
-
-				return { ...state, ...tempState, ...action?.payload };
-
-			// USER UNLINK
-			case 'USER_UNLINK_STARTED':
-				return { ...state, ...tempState, ...action?.payload };
-			case 'USER_UNLINK_SUCCEEDED':
-				// tempState = {
-				// 	...initialUserState,
-				// 	...initialAccountLinkState,
-				// };
-				const { id: credentialId } = action?.item || {};
-
-				const credentials = state?.credentials.filter(({ id }) => id !== credentialId);
-
-				return {
-					...state,
-					credentials,
-					...initialUserState,
-					...initialAccountLinkState,
-				};
-
 			// ERRORS
 			case 'APP_STATE_UPDATE_FAILED':
 			case 'LOGIN_ERROR':
 			case 'SILENT_AUTH_ERROR':
 			case 'USER_FETCH_FAILED':
 			case 'USER_INFO_FETCH_FAILED':
-			case 'USER_LINK_FAILED':
-			case 'USER_LINK_MODAL_CODE_EXCHANGE_FAILED':
-			case 'USER_LINK_POPUP_FAILED':
-			case 'USER_LINK_MODAL_FAILED':
-			case 'USER_UNLINK_FAILED':
 				console.log('login error:', action);
 				return {
 					...state,

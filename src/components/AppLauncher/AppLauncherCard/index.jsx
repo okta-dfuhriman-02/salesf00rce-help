@@ -7,7 +7,6 @@ import {
 	TrailheadIcon,
 } from '../../../common';
 
-const TRAILHEAD_URL = process.env.REACT_APP_TRAILHEAD_URL;
 const HELP_URL = process.env.REACT_APP_HELP_URL;
 
 const AppLauncherCard = () => (

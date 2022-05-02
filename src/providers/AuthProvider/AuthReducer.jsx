@@ -26,6 +26,8 @@ const initializeState = () => {
 		isAuthenticated: false,
 		isLoading: false,
 		isLoadingLogout: false,
+		isVisibleAppLauncher: false,
+
 		errors: [],
 		...initialLoginState,
 		...initialUserState,
@@ -80,10 +82,31 @@ export const AuthReducer = (state, action) => {
 				return { ...state, ...tempState, ...action?.payload };
 			case 'APP_STATE_UPDATED':
 				tempState = {
-					...tempState,
-					isStaleUserInfo: true,
+					...state,
+					...initialUserState,
+					...action?.payload,
 				};
-				return { ...state, ...tempState, ...action?.payload };
+
+				if (!tempState?.isAuthenticated) {
+					if (!_.isEmpty(tempState?.userInfo)) {
+						localStorage.removeItem('userInfo');
+						tempState = { ...tempState, userInfo: {} };
+					}
+
+					if (!_.isEmpty(tempState?.profile)) {
+						localStorage.removeItem('user');
+
+						tempState = { ...tempState, credentials: [], profile: {}, linkedUsers: [] };
+					}
+				}
+
+				if (!tempState?.isPendingAccountLink) {
+					tempState = {
+						...tempState,
+						isStaleUserInfo: true,
+					};
+				}
+				return tempState;
 
 			case 'AUTH_STATE_UPDATED':
 			case 'AUTH_STATE_CHECKED':

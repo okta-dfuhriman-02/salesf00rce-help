@@ -7,10 +7,14 @@ import {
 	TrailheadIcon,
 } from '../../../common';
 
+const TRAILHEAD_URL = process.env.REACT_APP_TRAILHEAD_URL;
+const HELP_URL = process.env.REACT_APP_HELP_URL;
+
 const AppLauncherCard = () => (
 	<div className='slds-grid slds-wrap'>
 		<a
-			href='#'
+			href={TRAILHEAD_URL}
+
 			className='slds-col slds-size_1-of-3 slds-text-align_center slds-p-vertical_medium slds-show_inline-block tds-app-launcher__item'
 		>
 			<figure>
@@ -55,7 +59,7 @@ const AppLauncherCard = () => (
 			<figcaption className='tds-text-size_3'>Events</figcaption>
 		</a>
 		<a
-			href='#'
+			href={HELP_URL}
 			className='slds-col slds-size_1-of-3 slds-text-align_center slds-p-vertical_medium slds-show_inline-block tds-app-launcher__item'
 		>
 			<figure>

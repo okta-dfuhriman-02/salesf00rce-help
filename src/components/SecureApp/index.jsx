@@ -7,7 +7,8 @@ import { Auth, LDS, Okta } from '../../common';
 import './styles.css';
 
 const SecureApp = ({ onAuthRequired, children }) => {
-	const { oktaAuth, _onAuthRequired } = Okta.useOktaAuth();
+	const { authState, oktaAuth, onAuthRequired: _onAuthRequired } = Okta.useOktaAuth();
+
 	const { signInWithRedirect, getUserInfo, getUser, silentAuth } = Auth.useAuthActions();
 	const dispatch = Auth.useAuthDispatch();
 	const {

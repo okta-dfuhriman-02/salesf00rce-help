@@ -1,8 +1,6 @@
 import { Auth, Okta, LDS, React, useEffect } from './common';
 import { useLocation, useNavigate } from 'react-router-dom';
 
-import './styles/App.css';
-
 import useBodyClass from './hooks/useBodyClass';
 
 import Router from './Router';
@@ -16,8 +14,18 @@ const App = () => {
 
 	const { pathname } = useLocation();
 	const navigate = useNavigate();
-	const restoreOriginalUri = async (_oktaAuth, originalUri) =>
-		navigate(Okta.toRelativeUrl(originalUri || '/', window.location.origin), { replace: true });
+	const restoreOriginalUri = async (_oktaAuth, originalUri) => {
+		const originalURL = new URL(originalUri);
+
+		if (originalURL?.pathname === '/') {
+			navigate('/today', { replace: true });
+		} else {
+			navigate(Okta.toRelativeUrl(originalUri || '/', window.location.origin), { replace: true });
+		}
+	};
+	const customAuthHandler = () => {
+		navigate('/', { replace: true });
+	};
 
 	// Setting page scroll to 0 when changing the route
 	useEffect(() => {
@@ -30,7 +38,11 @@ const App = () => {
 
 	return (
 		<React.Suspense fallback={<LDS.Spinner variant='brand' />}>
-			<Okta.Security oktaAuth={oktaAuth} restoreOriginalUri={restoreOriginalUri}>
+			<Okta.Security
+				oktaAuth={oktaAuth}
+				restoreOriginalUri={restoreOriginalUri}
+				onAuthRequired={customAuthHandler}
+			>
 				<Auth.Provider>
 					<LDS.IconSettings iconPath='/assets/icons'>
 						<Router />

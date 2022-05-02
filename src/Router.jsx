@@ -1,17 +1,17 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import { Auth, Okta, React } from './common';
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, useLocation } from 'react-router-dom';
 
 import AppLoginCallback from './pages/LoginCallback';
-import Profile from './pages/Profile';
+import TrailheadHeader from './components/TrailheadHeader';
 import SecureApp from './components/SecureApp';
-import Settings from './pages/Settings';
-import SignIn from './pages/SignIn';
-import UserLinkCallback from './pages/UserLinkCallback';
+import HomePage from './pages/Home';
+import TodayPage from './pages/Today';
 
 const Router = () => {
 	const { oktaAuth } = Okta.useOktaAuth();
 	const dispatch = Auth.useAuthDispatch();
+	const location = useLocation();
 
 	React.useEffect(() => {
 		oktaAuth.authStateManager.subscribe(() => dispatch({ type: 'AUTH_STATE_UPDATED' }));
@@ -19,16 +19,19 @@ const Router = () => {
 		return () => oktaAuth.authStateManager.unsubscribe();
 	}, []);
 
+	const showHeader = location.pathname !== '/login/callback';
+
 	return (
-		<Routes>
-			<Route path='/signin' element={<SignIn />} />
-			<Route path='/login/callback' element={<AppLoginCallback />} />
-			<Route path='/identities/callback' element={<UserLinkCallback />} />
-			<Route element={<SecureApp />}>
-				<Route path='/' element={<Profile />} />
-				<Route path='settings' element={<Settings />} />
-			</Route>
-		</Routes>
+		<>
+			{showHeader && <TrailheadHeader />}
+			<Routes>
+				<Route path='/login/callback' element={<AppLoginCallback />} />
+				<Route path='/home' element={<HomePage />} />
+				<Route element={<SecureApp />}>
+					<Route path='/' element={<TodayPage />} />
+				</Route>
+			</Routes>
+		</>
 	);
 };
 

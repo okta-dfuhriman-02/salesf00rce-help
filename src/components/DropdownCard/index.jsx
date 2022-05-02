@@ -1,6 +1,8 @@
-import { Auth, LDS, Link, aridDunes } from '../../common';
+import { Auth, LDS, aridDunes } from '../../common';
 
 import './styles.css';
+
+const PROFILE_APP_URL = process.env.REACT_APP_PROFILE_URL;
 
 const DropdownCard = () => {
 	const dispatch = Auth.useAuthDispatch();
@@ -17,14 +19,14 @@ const DropdownCard = () => {
 			<div className='menu__header'>{userInfo?.name}</div>
 			<ul className='menu__items'>
 				<li role='presentation'>
-					<Link to='/' className='menu__item' role='menuitem'>
+					<a href={PROFILE_APP_URL} className='menu__item' role='menuitem'>
 						Profile
-					</Link>
+					</a>
 				</li>
 				<li role='presentation'>
-					<Link to='/settings' className='menu__item' role='menuitem'>
+					<a href={`${PROFILE_APP_URL}/settings`} className='menu__item' role='menuitem'>
 						Settings
-					</Link>
+					</a>
 				</li>
 			</ul>
 			<div className='menu__footer'>

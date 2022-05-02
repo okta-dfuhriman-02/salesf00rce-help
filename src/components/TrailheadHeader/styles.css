@@ -1,0 +1,30 @@
+#nav-container {
+	align-items: center;
+	column-gap: var(--tds-spacing-4);
+	display: grid;
+	grid-template-columns: auto 1fr auto auto;
+	grid-template-rows: repeat(2, auto);
+	margin: 0px auto;
+	max-width: 1280px;
+	padding: 0 var(--tds-spacing-4) 0 var(--tds-spacing-4);
+}
+
+#logo {
+	grid-area: 1 / 1 / span 2 / span 1;
+}
+
+#nav-search {
+	align-items: center;
+	display: flex;
+	grid-area: 1 / 2 / span 1 / span 1;
+	max-width: 600px;
+}
+
+#nav-actions {
+	grid-area: 1 / 4 / span 1 / span 1;
+}
+
+#nav-search > div > div > svg {
+	height: 16px;
+	width: 16px;
+}

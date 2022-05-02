@@ -23,6 +23,7 @@
 		"autoprefixer": "^10.4.4",
 		"jwks-rsa": "^2.0.5",
 		"lodash": "^4.17.21",
+		"lottie-web": "^5.9.4",
 		"njwt": "^1.2.0",
 		"postcss": "^8.4.12",
 		"react": "^17.0.2",

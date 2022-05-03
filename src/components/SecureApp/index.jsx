@@ -7,7 +7,7 @@ import { Auth, LDS, Okta } from '../../common';
 import './styles.css';
 
 const SecureApp = ({ onAuthRequired, children }) => {
-	const { authState, oktaAuth, onAuthRequired: _onAuthRequired } = Okta.useOktaAuth();
+	const { oktaAuth } = Okta.useOktaAuth();
 
 	const { signInWithRedirect, getUserInfo, getUser, silentAuth } = Auth.useAuthActions();
 	const dispatch = Auth.useAuthDispatch();
@@ -37,7 +37,7 @@ const SecureApp = ({ onAuthRequired, children }) => {
 
 				oktaAuth.setOriginalUri(originalUri);
 
-				const onAuthRequiredFn = onAuthRequired || _onAuthRequired;
+				const onAuthRequiredFn = onAuthRequired;
 				console.debug('authRequired');
 				if (onAuthRequiredFn) {
 					await onAuthRequiredFn(oktaAuth);
@@ -57,7 +57,7 @@ const SecureApp = ({ onAuthRequired, children }) => {
 			console.debug('SecureApp > handleLogin()');
 			handleLogin();
 		}
-	}, [isPendingLogin, isAuthenticated, onAuthRequired, _onAuthRequired]);
+	}, [isPendingLogin, isAuthenticated, onAuthRequired]);
 
 	React.useEffect(() => {
 		if ((isStaleUserInfo || !userInfo) && isAuthenticated && !isPendingLogin) {

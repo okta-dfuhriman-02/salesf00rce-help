@@ -1,6 +1,6 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import { Auth, Okta, React } from './common';
-import { Routes, Route, useLocation } from 'react-router-dom';
+import { Routes, Route, useLocation, useNavigate } from 'react-router-dom';
 
 import AppLoginCallback from './pages/LoginCallback';
 import TrailheadHeader from './components/TrailheadHeader';
@@ -10,6 +10,8 @@ import TodayPage from './pages/Today';
 
 const Router = () => {
 	const { oktaAuth } = Okta.useOktaAuth();
+	const navigate = useNavigate();
+
 	const dispatch = Auth.useAuthDispatch();
 	const location = useLocation();
 
@@ -27,7 +29,7 @@ const Router = () => {
 			<Routes>
 				<Route path='/login/callback' element={<AppLoginCallback />} />
 				<Route path='/home' element={<HomePage />} />
-				<Route element={<SecureApp />}>
+				<Route element={<SecureApp onAuthRequired={() => navigate('/home', { replace: true })} />}>
 					<Route path='/' element={<TodayPage />} />
 				</Route>
 			</Routes>

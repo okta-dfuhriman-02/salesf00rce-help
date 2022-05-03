@@ -17,14 +17,11 @@ const App = () => {
 	const restoreOriginalUri = async (_oktaAuth, originalUri) => {
 		const originalURL = new URL(originalUri);
 
-		if (originalURL?.pathname === '/') {
-			navigate('/today', { replace: true });
+		if (originalURL?.pathname === '/home') {
+			navigate('/', { replace: true });
 		} else {
 			navigate(Okta.toRelativeUrl(originalUri || '/', window.location.origin), { replace: true });
 		}
-	};
-	const customAuthHandler = () => {
-		navigate('/', { replace: true });
 	};
 
 	// Setting page scroll to 0 when changing the route
@@ -38,11 +35,7 @@ const App = () => {
 
 	return (
 		<React.Suspense fallback={<LDS.Spinner variant='brand' />}>
-			<Okta.Security
-				oktaAuth={oktaAuth}
-				restoreOriginalUri={restoreOriginalUri}
-				onAuthRequired={customAuthHandler}
-			>
+			<Okta.Security oktaAuth={oktaAuth} restoreOriginalUri={restoreOriginalUri}>
 				<Auth.Provider>
 					<LDS.IconSettings iconPath='/assets/icons'>
 						<Router />

@@ -5,21 +5,46 @@ import { Routes, Route, useLocation, useNavigate } from 'react-router-dom';
 import AppLoginCallback from './pages/LoginCallback';
 import TrailheadHeader from './components/TrailheadHeader';
 import SecureApp from './components/SecureApp';
-import HomePage from './pages/Home';
+import LandingPage from './pages/Landing';
 import TodayPage from './pages/Today';
+import { getUserInfo } from '@okta/okta-auth-js';
 
 const Router = () => {
-	const { oktaAuth } = Okta.useOktaAuth();
+	const { authState } = Okta.useOktaAuth();
 	const navigate = useNavigate();
-
 	const dispatch = Auth.useAuthDispatch();
+	const { silentAuth } = Auth.useAuthActions();
+	const {
+		isAuthenticated,
+		isStaleUserInfo,
+		isStaleUserProfile,
+		isPendingUserInfoFetch,
+		userInfo,
+		isPendingLogin,
+		profile,
+	} = Auth.useAuthState();
 	const location = useLocation();
 
 	React.useEffect(() => {
-		oktaAuth.authStateManager.subscribe(() => dispatch({ type: 'AUTH_STATE_UPDATED' }));
+		const _isAuthenticated = authState?.isAuthenticated || isAuthenticated;
 
-		return () => oktaAuth.authStateManager.unsubscribe();
-	}, []);
+		if (!isPendingLogin && _isAuthenticated) silentAuth(dispatch);
+	}, [authState?.isAuthenticated, isAuthenticated]);
+	React.useEffect(() => {
+		if (authState?.isAuthenticated && (isStaleUserInfo || !userInfo) && !isPendingLogin) {
+			getUserInfo(dispatch);
+		}
+	}, [authState, isStaleUserInfo, isPendingLogin]);
+
+	React.useEffect(() => {
+		if (
+			authState?.isAuthenticated &&
+			(isStaleUserProfile || !profile) &&
+			!isPendingLogin &&
+			!isPendingUserInfoFetch
+		)
+			getUserInfo(dispatch, { userId: userInfo.sub });
+	}, [authState?.isAuthenticated, isStaleUserProfile, isPendingLogin, isPendingUserInfoFetch]);
 
 	const showHeader = location.pathname !== '/login/callback';
 
@@ -28,9 +53,9 @@ const Router = () => {
 			{showHeader && <TrailheadHeader />}
 			<Routes>
 				<Route path='/login/callback' element={<AppLoginCallback />} />
-				<Route path='/home' element={<HomePage />} />
-				<Route element={<SecureApp onAuthRequired={() => navigate('/home', { replace: true })} />}>
-					<Route path='/' element={<TodayPage />} />
+				<Route path='/' element={<LandingPage />} />
+				<Route element={<SecureApp onAuthRequired={() => navigate('/', { replace: true })} />}>
+					<Route path='/today' element={<TodayPage />} />
 				</Route>
 			</Routes>
 		</>

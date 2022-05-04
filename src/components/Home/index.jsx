@@ -1,16 +1,7 @@
-/* eslint-disable react-hooks/exhaustive-deps */
-import { Auth, React, TrailheadConnect, TrailheadEarn, TrailheadLearn } from '../../common';
-import { useNavigate } from 'react-router-dom';
+import { React, TrailheadConnect, TrailheadEarn, TrailheadLearn } from '../../common';
 import lottie from 'lottie-web';
 
-const HomePage = () => {
-	const { isAuthenticated } = Auth.useAuthState();
-	const navigate = useNavigate();
-	React.useEffect(() => {
-		if (isAuthenticated) {
-			navigate('/', { replace: true });
-		}
-	}, [isAuthenticated]);
+const Home = () => {
 	React.useEffect(() => {
 		const animationConfigs = [
 			{
@@ -143,4 +134,4 @@ const HomePage = () => {
 	);
 };
 
-export default HomePage;
+export default Home;

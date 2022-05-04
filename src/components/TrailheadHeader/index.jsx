@@ -1,4 +1,4 @@
-import { Auth, LDS, Link, Okta, React, TrailheadLogo } from '../../common';
+import { Auth, LDS, Link, React, TrailheadLogo } from '../../common';
 
 import AppLauncher from '../AppLauncher';
 import DropdownCard from '../DropdownCard';
@@ -7,21 +7,16 @@ import HeaderNav from './HeaderNav';
 import './styles.css';
 
 const TrailheadHeader = () => {
-	const { isAuthenticated, isPendingUserInfoFetch, userInfo } = Auth.useAuthState();
+	const { isAuthenticated, isPendingLogout, isPendingLogin, isPendingUserInfoFetch, userInfo } =
+		Auth.useAuthState();
 	const dispatch = Auth.useAuthDispatch();
 	const { login } = Auth.useAuthActions();
 
 	const handleLogin = () => login(dispatch);
 	const handleSignUp = () => login(dispatch, { isSignUp: true });
 
-	React.useEffect(() => {
-		if (!isAuthenticated) {
-			return <LDS.Spinner variant='brand' />;
-		}
-	}, [isAuthenticated]);
-
 	const userPanel =
-		isPendingUserInfoFetch || !userInfo ? (
+		isPendingUserInfoFetch || !userInfo || isPendingLogout ? (
 			<div style={{ width: '8rem', height: '3rem' }}>
 				<LDS.Spinner
 					variant='brand'
@@ -111,9 +106,35 @@ const TrailheadHeader = () => {
 							</>
 						)}
 						{!isAuthenticated && (
-							<LDS.Button label='Sign Up' variant='brand' onClick={handleSignUp} />
+							<LDS.Button
+								label='Sign Up'
+								style={
+									isPendingLogin
+										? {
+												borderColor: 'rgba(255, 255, 255, 0.75)',
+												boxShadow: '0 1px 0 rgba(255, 255, 255, 0.75)',
+										  }
+										: {}
+								}
+								variant='brand'
+								onClick={handleSignUp}
+							>
+								{isPendingLogin && (
+									<LDS.Spinner containerStyle={{ borderRadius: '4px' }} size='x-small' />
+								)}
+							</LDS.Button>
 						)}
-						{!isAuthenticated && <LDS.Button label='Log In' onClick={handleLogin} />}
+						{!isAuthenticated && (
+							<LDS.Button label='Login' onClick={handleLogin}>
+								{isPendingLogin && (
+									<LDS.Spinner
+										containerStyle={{ borderRadius: '4px' }}
+										variant='brand'
+										size='x-small'
+									/>
+								)}
+							</LDS.Button>
+						)}
 					</div>
 				</div>
 			</div>

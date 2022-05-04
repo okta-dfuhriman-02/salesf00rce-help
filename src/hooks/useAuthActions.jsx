@@ -64,6 +64,7 @@ const useAuthActions = () => {
 
 							result = {
 								type: 'SILENT_AUTH_SUCCESS',
+								payload: { isAuthenticated: _isAuthenticated },
 							};
 						}
 					}

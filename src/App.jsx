@@ -14,15 +14,9 @@ const App = () => {
 
 	const { pathname } = useLocation();
 	const navigate = useNavigate();
-	const restoreOriginalUri = async (_oktaAuth, originalUri) => {
-		const originalURL = new URL(originalUri);
+	const restoreOriginalUri = async (_oktaAuth, originalUri) =>
+		navigate(Okta.toRelativeUrl(originalUri || '/', window.location.origin), { replace: true });
 
-		if (originalURL?.pathname === '/') {
-			navigate('/today', { replace: true });
-		} else {
-			navigate(Okta.toRelativeUrl(originalUri || '/', window.location.origin), { replace: true });
-		}
-	};
 	const customAuthHandler = () => {
 		navigate('/', { replace: true });
 	};

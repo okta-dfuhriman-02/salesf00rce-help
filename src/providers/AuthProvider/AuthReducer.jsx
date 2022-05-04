@@ -20,18 +20,20 @@ const initialUserState = {
 	isStaleUserInfo: false,
 };
 
-const initializeState = () => {
-	let state = {
-		isError: false,
-		isAuthenticated: false,
-		isLoading: false,
-		isLoadingLogout: false,
-		isVisibleAppLauncher: false,
+export const initialState = {
+	isError: false,
+	isAuthenticated: false,
+	isLoading: false,
+	isPendingLogout: false,
+	isVisibleAppLauncher: false,
 
-		errors: [],
-		...initialLoginState,
-		...initialUserState,
-	};
+	errors: [],
+	...initialLoginState,
+	...initialUserState,
+};
+
+export const initializeState = _initialState => {
+	const state = { ..._initialState };
 
 	const _storedState = localStorage.getItem('app_state');
 	const storedState = _storedState !== null ? JSON.parse(_storedState) : {};
@@ -61,186 +63,142 @@ const initializeState = () => {
 	return { ...state, ...storedState };
 };
 
-export const initialState = {
-	...initializeState(),
-};
-
 export const AuthReducer = (state, action) => {
 	try {
-		let tempState = {};
+		const { type: message, payload = {}, error = {} } = action || {};
+
+		const createState = ({ newState = {}, msg = message, state = {}, payload = {} }) => {
+			const endState = { ...state, ...newState, ...payload };
+
+			return endState;
+		};
+
+		let newState = {};
+
+		const _default = () => createState({ state, newState, payload });
+
 		console.debug('===== STATE =====');
 		console.debug(JSON.stringify(state, null, 2));
 		console.debug('===== ACTION =====');
 		console.debug(JSON.stringify(action, null, 2));
-		switch (action?.type) {
+		switch (message) {
 			case 'APP_STATE_UPDATE_STARTED':
-				tempState = {
+				newState = {
 					isPendingUserFetch: true,
 					isPendingUserInfoFetch: true,
 				};
-
-				return { ...state, ...tempState, ...action?.payload };
+				return createState({ newState, payload });
 			case 'APP_STATE_UPDATED':
-				tempState = {
+				newState = {
 					...state,
 					...initialUserState,
-					...action?.payload,
+					...payload,
 				};
 
-				if (!tempState?.isAuthenticated) {
-					if (!_.isEmpty(tempState?.userInfo)) {
+				if (!newState?.isAuthenticated) {
+					if (!_.isEmpty(newState?.userInfo)) {
 						localStorage.removeItem('userInfo');
-						tempState = { ...tempState, userInfo: {} };
+						newState = { ...newState, userInfo: {} };
 					}
 
-					if (!_.isEmpty(tempState?.profile)) {
+					if (!_.isEmpty(newState?.profile)) {
 						localStorage.removeItem('user');
 
-						tempState = { ...tempState, credentials: [], profile: {}, linkedUsers: [] };
+						newState = { ...newState, credentials: [], profile: {}, linkedUsers: [] };
 					}
 				}
 
-				if (!tempState?.isPendingAccountLink) {
-					tempState = {
-						...tempState,
+				if (!newState?.isPendingAccountLink) {
+					newState = {
+						...newState,
 						isStaleUserInfo: true,
 					};
 				}
-				return tempState;
+				return createState({ newState });
 
-			case 'AUTH_STATE_UPDATED':
 			case 'AUTH_STATE_CHECKED':
-				return { ...state, ...action?.payload };
-
-			// CREDENTIAL RECOVERY
-			case 'RECOVERY_STARTED':
-				return { ...state, ...tempState, ...action?.payload };
-			case 'RECOVERY_SUCCEEDED':
-				return { ...state, ...tempState, ...action?.payload };
+				return createState({ state, payload });
 
 			// LOGIN
 			case 'LOGIN_CANCELLED':
-				tempState = {
+				newState = {
 					...initialLoginState,
 				};
-				return { ...state, ...tempState, ...action?.payload };
-			case 'LOGIN_INIT_WITH_EMAIL'.type:
-				tempState = {
-					...initialLoginFormState,
-					isEmailAuth: true,
-					content: {
-						header: {
-							headline: 'Login with your email',
-							subheadline: "Enter your email address and we'll send you a single-use code.",
-						},
-						primaryCTA: 'Log In',
-					},
-				};
-				return { ...state, ...tempState, ...action?.payload };
-			case 'LOGIN_INIT_SIGN_UP'.type:
-				tempState = {
-					...initialLoginFormState,
-					isSignUp: true,
-					content: {
-						header: {
-							headline: 'Sign up with your email',
-							subheadline: "Enter your email address and we'll send you a single-use code.",
-						},
-						primaryCTA: 'Sign Up',
-					},
-				};
-				return { ...state, ...tempState, ...action?.payload };
-			case 'LOGIN_INIT_RECOVERY'.type:
-				tempState = {
-					...initialLoginFormState,
-					isRecovery: true,
-					content: {
-						header: {
-							headline: "Can't log in?",
-							subheadline: "Enter your email address and we'll get you back on the trail.",
-						},
-						primaryCTA: 'Send Verification Email',
-					},
-				};
-				return { ...state, ...tempState, ...action?.payload };
+				return _default();
 			case 'LOGIN_PENDING':
-				tempState = {
+				newState = {
 					isPendingLogin: true,
 				};
-				return { ...state, ...tempState, ...action?.payload };
+				return _default();
 			case 'LOGOUT_STARTED':
-				tempState = {
-					isLoadingLogout: true,
+				newState = {
+					isPendingLogout: true,
 				};
-				return { ...state, ...tempState, ...action?.payload };
+				return _default();
 			case 'LOGIN_SUCCESS':
-				tempState = {
+				newState = {
 					...initialLoginState,
 					isAuthenticated: true,
 					isStaleUserInfo: true,
 				};
-				return { ...state, ...tempState, ...action?.payload };
+				return _default();
 			case 'LOGIN_WITH_REDIRECT_STARTED':
-				tempState = {
+				newState = {
 					isPendingLogin: true,
 				};
-				return { ...state, ...tempState, ...action?.payload };
+				return _default();
 
 			// LOGOUT
 			case 'LOGOUT_SUCCEEDED':
-				tempState = {
-					isLoadingLogout: false,
+				newState = {
+					isPendingLogout: false,
 					...initialLoginState,
 				};
-				return { ...state, ...tempState, ...action?.payload };
+				return _default();
 
 			// SILENT AUTH
 			case 'SILENT_AUTH_ABORTED':
-				tempState = {
+				newState = {
 					...initialLoginState,
 				};
-				return { ...state, ...tempState, ...action?.payload };
+				return _default();
 			case 'SILENT_AUTH_STARTED':
-				tempState = {
+				newState = {
 					isPendingLogin: true,
 				};
-				return { ...state, ...tempState, ...action?.payload };
+				return _default();
 			case 'SILENT_AUTH_SUCCESS':
-				tempState = {
+				newState = {
 					...initialLoginState,
 				};
-				return { ...state, ...tempState, ...action?.payload };
+				return _default();
 
 			// USER FETCH
 			case 'USER_FETCH_STARTED':
-				tempState = {
+				newState = {
 					isPendingUserFetch: true,
 					isStaleUserProfile: false,
 				};
-
-				return { ...state, ...tempState, ...action?.payload };
+				return _default();
 			case 'USER_INFO_FETCH_STARTED':
-				tempState = {
+				newState = {
 					isPendingUserInfoFetch: true,
 					isStaleUserInfo: false,
 				};
-
-				return { ...state, ...tempState, ...action?.payload };
-
+				return _default();
 			case 'USER_FETCH_SUCCEEDED':
-				tempState = {
+				newState = {
 					...initialLoginState,
 					isPendingUserFetch: false,
 				};
-				return { ...state, ...tempState, ...action?.payload };
+				return _default();
 			case 'USER_INFO_FETCH_SUCCEEDED':
-				tempState = {
+				newState = {
 					...initialLoginState,
 					isStaleUserProfile: true,
 					isPendingUserInfoFetch: false,
 				};
-
-				return { ...state, ...tempState, ...action?.payload };
+				return _default();
 
 			// ERRORS
 			case 'APP_STATE_UPDATE_FAILED':
@@ -249,15 +207,15 @@ export const AuthReducer = (state, action) => {
 			case 'USER_FETCH_FAILED':
 			case 'USER_INFO_FETCH_FAILED':
 				console.log('login error:', action);
-				return {
-					...state,
+				newState = {
 					...initialState,
-					...action?.payload,
+					...payload,
 					...{
-						error: action?.error,
+						error,
 						isError: true,
 					},
 				};
+				return createState({ newState });
 			default:
 				throw new Error(`Unhandled action type: ${action?.type}`);
 		}

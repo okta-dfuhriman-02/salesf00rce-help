@@ -1,7 +1,7 @@
 import { React, TrailheadConnect, TrailheadEarn, TrailheadLearn } from '../../common';
 import lottie from 'lottie-web';
 
-const HomePage = () => {
+const Home = () => {
 	React.useEffect(() => {
 		const animationConfigs = [
 			{
@@ -134,4 +134,4 @@ const HomePage = () => {
 	);
 };
 
-export default HomePage;
+export default Home;

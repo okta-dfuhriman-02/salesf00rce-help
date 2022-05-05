@@ -9,16 +9,9 @@ import './styles.css';
 const SecureApp = ({ onAuthRequired, children }) => {
 	const { authState, oktaAuth } = Okta.useOktaAuth();
 
-	const { signInWithRedirect, getUserInfo, getUser, silentAuth } = Auth.useAuthActions();
+	const { signInWithRedirect, silentAuth } = Auth.useAuthActions();
 	const dispatch = Auth.useAuthDispatch();
-	const {
-		isAuthenticated,
-		isPendingLogin,
-		isPendingUserInfoFetch,
-		isStaleUserInfo,
-		isStaleUserProfile,
-		userInfo,
-	} = Auth.useAuthState();
+	const { isAuthenticated, isPendingLogin } = Auth.useAuthState();
 	const pendingLogin = React.useRef(false);
 	React.useEffect(() => {
 		const _isAuthenticated = authState?.isAuthenticated || isAuthenticated;

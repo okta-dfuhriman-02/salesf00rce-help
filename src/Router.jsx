@@ -25,16 +25,6 @@ const Router = () => {
 		profile,
 	} = Auth.useAuthState();
 	const location = useLocation();
-
-	// React.useEffect(() => {
-	// 	const handler = authState => dispatch({ type: 'AUTH_STATE_UPDATED', payload: { authState } });
-
-	// 	console.debug('Router > authStateManager.subscribe()');
-
-	// 	oktaAuth.authStateManager.subscribe(handler);
-
-	// 	return () => oktaAuth.authStateManager.unsubscribe();
-	// }, []);
 	React.useEffect(() => {
 		const _authState = authState || oktaAuth.authStateManager.getAuthState();
 

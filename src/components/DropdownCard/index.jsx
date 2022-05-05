@@ -7,14 +7,20 @@ const PROFILE_APP_URL = process.env.REACT_APP_PROFILE_URL;
 const DropdownCard = () => {
 	const dispatch = Auth.useAuthDispatch();
 	const { logout } = Auth.useAuthActions();
-	const { userInfo } = Auth.useAuthState();
+	const { profile, userInfo } = Auth.useAuthState();
 
 	return (
 		<div className='dropdown-menu' id='dropdown'>
 			<div className='menu__banner' style={{ backgroundImage: `url(${aridDunes})` }} />
 			<div
 				className='menu__banner-photo'
-				style={{ backgroundImage: `url(${userInfo?.picture ?? 'assets/images/astro.svg'})` }}
+				style={
+					profile?.picture || userInfo?.picture
+						? {
+								backgroundImage: `url(${profile?.picture || userInfo?.picture})`,
+						  }
+						: {}
+				}
 			/>
 			<div className='menu__header'>{userInfo?.name}</div>
 			<ul className='menu__items'>

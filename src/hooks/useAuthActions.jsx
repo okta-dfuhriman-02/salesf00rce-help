@@ -24,6 +24,8 @@ const useAuthActions = () => {
 		const { authState, oktaAuth } = Okta.useOktaAuth();
 
 		const isAuthenticated = async dispatch => {
+			dispatch({ type: 'AUTH_STATE_CHECK_STARTED' });
+
 			const isAuthenticated = await oktaAuth.isAuthenticated();
 
 			console.log('isAuthenticated:', isAuthenticated);
@@ -37,14 +39,14 @@ const useAuthActions = () => {
 			try {
 				const config = {};
 
-				dispatch({ type: 'SILENT_AUTH_STARTED' });
-
 				// Check if we can get tokens using either a refresh_token or, if our tokens are expired, if getWithoutPrompt works.
 				const _isAuthenticated = await isAuthenticated(dispatch);
 
 				let result = { type: 'SILENT_AUTH_ABORTED' };
 
 				if (!_isAuthenticated) {
+					dispatch({ type: 'SILENT_AUTH_STARTED' });
+
 					const hasSession = options?.hasSession || (await oktaAuth.session.exists());
 
 					if (hasSession) {
@@ -64,6 +66,7 @@ const useAuthActions = () => {
 
 							result = {
 								type: 'SILENT_AUTH_SUCCESS',
+								payload: { isAuthenticated: _isAuthenticated },
 							};
 						}
 					}
@@ -262,7 +265,7 @@ const useAuthActions = () => {
 				}
 
 				if (oktaAuth.isLoginRedirect()) {
-					dispatch({ type: 'LOGIN_PENDING' });
+					dispatch({ type: 'LOGIN_CODE_EXCHANGE_STARTED' });
 
 					await oktaAuth.handleLoginRedirect();
 

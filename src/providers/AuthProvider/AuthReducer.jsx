@@ -117,40 +117,6 @@ export const AuthReducer = (state, action) => {
 		}
 
 		switch (message) {
-			case 'APP_STATE_UPDATE_STARTED':
-				newState = {
-					isPendingUserFetch: true,
-					isPendingUserInfoFetch: true,
-				};
-				return createState({ newState, payload });
-			case 'APP_STATE_UPDATED':
-				newState = {
-					...state,
-					...initialUserState,
-					...payload,
-				};
-
-				if (!newState?.isAuthenticated) {
-					if (!_.isEmpty(newState?.userInfo)) {
-						localStorage.removeItem('userInfo');
-						newState = { ...newState, userInfo: {} };
-					}
-
-					if (!_.isEmpty(newState?.profile)) {
-						localStorage.removeItem('user');
-
-						newState = { ...newState, credentials: [], profile: {}, linkedUsers: [] };
-					}
-				}
-
-				if (!newState?.isPendingAccountLink) {
-					newState = {
-						...newState,
-						isStaleUserInfo: true,
-					};
-				}
-				return createState({ newState });
-
 			case 'AUTH_STATE_CHECK_STARTED':
 				return _default();
 
@@ -158,6 +124,7 @@ export const AuthReducer = (state, action) => {
 			case 'AUTH_STATE_UPDATED':
 				newState = {
 					...updateUserState(payload),
+					isAuthenticated: state?.authState?.isAuthenticated,
 				};
 
 				return _default();

@@ -7,7 +7,7 @@ import { Auth, LDS, Okta } from '../../common';
 import './styles.css';
 
 const SecureApp = ({ onAuthRequired, children }) => {
-	const { oktaAuth } = Okta.useOktaAuth();
+	const { authState, oktaAuth } = Okta.useOktaAuth();
 
 	const { signInWithRedirect, getUserInfo, getUser, silentAuth } = Auth.useAuthActions();
 	const dispatch = Auth.useAuthDispatch();
@@ -21,6 +21,8 @@ const SecureApp = ({ onAuthRequired, children }) => {
 	} = Auth.useAuthState();
 	const pendingLogin = React.useRef(false);
 	React.useEffect(() => {
+		const _isAuthenticated = authState?.isAuthenticated || isAuthenticated;
+
 		const handleLogin = async () => {
 			if (pendingLogin.current) {
 				return;
@@ -48,38 +50,18 @@ const SecureApp = ({ onAuthRequired, children }) => {
 			}
 		};
 
-		if (isAuthenticated) {
+		if (_isAuthenticated) {
 			pendingLogin.current = false;
 			return;
 		}
 
-		if (!isAuthenticated && !isPendingLogin) {
+		if (!_isAuthenticated && !isPendingLogin) {
 			console.debug('SecureApp > handleLogin()');
 			handleLogin();
 		}
-	}, [isPendingLogin, isAuthenticated, onAuthRequired]);
+	}, [isPendingLogin, authState?.isAuthenticated, isAuthenticated, onAuthRequired]);
 
-	React.useEffect(() => {
-		if ((isStaleUserInfo || !userInfo) && isAuthenticated && !isPendingLogin) {
-			console.debug('SecureApp > getUserInfo()');
-			return getUserInfo(dispatch);
-		}
-	}, [isStaleUserInfo, isAuthenticated, userInfo]);
-
-	React.useEffect(() => {
-		if (
-			isStaleUserProfile &&
-			isAuthenticated &&
-			!isPendingLogin &&
-			!isPendingUserInfoFetch &&
-			userInfo?.sub
-		) {
-			console.debug('SecureApp > getUser()');
-			return getUser(dispatch, { userId: userInfo.sub });
-		}
-	}, [isStaleUserProfile]);
-
-	if (!isAuthenticated) {
+	if (!authState?.isAuthenticated || !isAuthenticated) {
 		return <LDS.Spinner variant='inverse' size='large' containerClassName='sign-in-loader' />;
 	}
 

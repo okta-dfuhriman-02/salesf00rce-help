@@ -1,23 +1,15 @@
-/** @format */
-
 import { _ } from '../../common';
-
-const initialLoginFormState = {
-	isSignUp: false,
-	isEmailAuth: false,
-	isRecovery: false,
-};
 
 const initialLoginState = {
 	isPendingLogin: false,
-	...initialLoginFormState,
+	isLoggedOut: false,
 };
 
 const initialUserState = {
 	isPendingUserFetch: false,
 	isPendingUserInfoFetch: false,
-	isStaleUserProfile: false,
-	isStaleUserInfo: false,
+	isStaleUserProfile: true,
+	isStaleUserInfo: true,
 };
 
 export const initialState = {
@@ -25,8 +17,6 @@ export const initialState = {
 	isAuthenticated: false,
 	isLoading: false,
 	isPendingLogout: false,
-	isVisibleAppLauncher: false,
-
 	errors: [],
 	...initialLoginState,
 	...initialUserState,
@@ -63,12 +53,47 @@ export const initializeState = _initialState => {
 	return { ...state, ...storedState };
 };
 
+const updateUserState = payload => {
+	const { userInfo, profile, isAuthenticated } = payload || {};
+	let userState = {};
+
+	if (!isAuthenticated) {
+		if (!_.isEmpty(userInfo)) {
+			userState = {
+				...userState,
+				userInfo: {},
+			};
+
+			localStorage.removeItem('userInfo');
+		}
+
+		if (!_.isEmpty(profile)) {
+			userState = {
+				...userState,
+				profile: {},
+				credentials: {},
+				linkedUsers: [],
+			};
+
+			localStorage.removeItem('user');
+		}
+	}
+	return userState;
+};
+
 export const AuthReducer = (state, action) => {
 	try {
 		const { type: message, payload = {}, error = {} } = action || {};
 
+		console.group('===== AUTH REDUCER =====');
+
 		const createState = ({ newState = {}, msg = message, state = {}, payload = {} }) => {
 			const endState = { ...state, ...newState, ...payload };
+
+			console.group('===== NEW STATE =====');
+			console.log(JSON.stringify(endState, null, 2));
+			console.groupEnd();
+			console.groupEnd();
 
 			return endState;
 		};
@@ -77,10 +102,20 @@ export const AuthReducer = (state, action) => {
 
 		const _default = () => createState({ state, newState, payload });
 
-		console.debug('===== STATE =====');
-		console.debug(JSON.stringify(state, null, 2));
-		console.debug('===== ACTION =====');
-		console.debug(JSON.stringify(action, null, 2));
+		console.group('===== CURRENT STATE =====');
+		console.log(JSON.stringify(state, null, 2));
+		console.groupEnd();
+
+		console.group(`===== ${action?.type} =====`);
+		console.log(JSON.stringify(payload, null, 2));
+		console.groupEnd();
+
+		if (!_.isEmpty(error)) {
+			console.group('===== ERROR =====');
+			console.log(error);
+			console.groupEnd();
+		}
+
 		switch (message) {
 			case 'APP_STATE_UPDATE_STARTED':
 				newState = {
@@ -116,8 +151,16 @@ export const AuthReducer = (state, action) => {
 				}
 				return createState({ newState });
 
+			case 'AUTH_STATE_CHECK_STARTED':
+				return _default();
+
 			case 'AUTH_STATE_CHECKED':
-				return createState({ state, payload });
+			case 'AUTH_STATE_UPDATED':
+				newState = {
+					...updateUserState(payload),
+				};
+
+				return _default();
 
 			// LOGIN
 			case 'LOGIN_CANCELLED':
@@ -125,7 +168,7 @@ export const AuthReducer = (state, action) => {
 					...initialLoginState,
 				};
 				return _default();
-			case 'LOGIN_PENDING':
+			case 'LOGIN_CODE_EXCHANGE_STARTED':
 				newState = {
 					isPendingLogin: true,
 				};
@@ -153,6 +196,8 @@ export const AuthReducer = (state, action) => {
 				newState = {
 					isPendingLogout: false,
 					...initialLoginState,
+					isLoggedOut: true,
+					...updateUserState(payload),
 				};
 				return _default();
 
@@ -209,6 +254,7 @@ export const AuthReducer = (state, action) => {
 				console.log('login error:', action);
 				newState = {
 					...initialState,
+					...updateUserState(),
 					...payload,
 					...{
 						error,

@@ -7,43 +7,77 @@ import TrailheadHeader from './components/TrailheadHeader';
 import SecureApp from './components/SecureApp';
 import LandingPage from './pages/Landing';
 import TodayPage from './pages/Today';
-import { getUserInfo } from '@okta/okta-auth-js';
 
 const Router = () => {
-	const { authState } = Okta.useOktaAuth();
+	const { authState, oktaAuth } = Okta.useOktaAuth();
 	const navigate = useNavigate();
 	const dispatch = Auth.useAuthDispatch();
-	const { silentAuth } = Auth.useAuthActions();
+	const { getUserInfo, getUser, silentAuth } = Auth.useAuthActions();
 	const {
 		isAuthenticated,
+		isLoggedOut,
 		isStaleUserInfo,
 		isStaleUserProfile,
 		isPendingUserInfoFetch,
+		isPendingUserProfileFetch,
 		userInfo,
 		isPendingLogin,
 		profile,
 	} = Auth.useAuthState();
 	const location = useLocation();
 
+	// React.useEffect(() => {
+	// 	const handler = authState => dispatch({ type: 'AUTH_STATE_UPDATED', payload: { authState } });
+
+	// 	console.debug('Router > authStateManager.subscribe()');
+
+	// 	oktaAuth.authStateManager.subscribe(handler);
+
+	// 	return () => oktaAuth.authStateManager.unsubscribe();
+	// }, []);
+	React.useEffect(() => {
+		const _authState = authState || oktaAuth.authStateManager.getAuthState();
+
+		const _isAuthenticated = _authState?.isAuthenticated || isAuthenticated;
+
+		if (!oktaAuth.isLoginRedirect && !isLoggedOut && !isPendingLogin && !_isAuthenticated) {
+			console.group('Router > silentAuth()');
+			console.log('_isAuthenticated:', _isAuthenticated);
+			console.groupEnd();
+
+			silentAuth(dispatch);
+		}
+	}, [authState, isAuthenticated]);
 	React.useEffect(() => {
 		const _isAuthenticated = authState?.isAuthenticated || isAuthenticated;
 
-		if (!isPendingLogin && _isAuthenticated) silentAuth(dispatch);
-	}, [authState?.isAuthenticated, isAuthenticated]);
-	React.useEffect(() => {
-		if (authState?.isAuthenticated && (isStaleUserInfo || !userInfo) && !isPendingLogin) {
+		if (
+			_isAuthenticated &&
+			(isStaleUserInfo || !userInfo) &&
+			!isPendingLogin &&
+			!isPendingUserInfoFetch
+		) {
+			console.debug('Router > getUserInfo()');
+
 			getUserInfo(dispatch);
 		}
 	}, [authState, isStaleUserInfo, isPendingLogin]);
 
 	React.useEffect(() => {
+		const _isAuthenticated = authState?.isAuthenticated || isAuthenticated;
+
 		if (
-			authState?.isAuthenticated &&
+			_isAuthenticated &&
+			userInfo?.sub &&
 			(isStaleUserProfile || !profile) &&
 			!isPendingLogin &&
-			!isPendingUserInfoFetch
-		)
-			getUserInfo(dispatch, { userId: userInfo.sub });
+			!isPendingUserInfoFetch &&
+			!isPendingUserProfileFetch
+		) {
+			console.debug('Router > getUser()');
+
+			getUser(dispatch, { userId: userInfo.sub });
+		}
 	}, [authState?.isAuthenticated, isStaleUserProfile, isPendingLogin, isPendingUserInfoFetch]);
 
 	const showHeader = location.pathname !== '/login/callback';

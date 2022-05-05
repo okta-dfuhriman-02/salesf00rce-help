@@ -15,16 +15,23 @@ const TrailheadHeader = () => {
 	const handleLogin = () => login(dispatch);
 	const handleSignUp = () => login(dispatch, { isSignUp: true });
 
-	const userPanel =
-		isPendingUserInfoFetch || !userInfo || isPendingLogout ? (
-			<div style={{ width: '8rem', height: '3rem' }}>
-				<LDS.Spinner
-					variant='brand'
-					size='small'
-					containerClassName='slds-align_absolute-center slds-p-around_large '
-					containerStyle={{ left: 'unset', right: 'unset' }}
-				/>
-			</div>
+	const Spinner = () => (
+		<div
+			className='slds-m-right_small'
+			style={{ position: 'relative', width: '8rem', height: '3rem' }}
+		>
+			<LDS.Spinner
+				variant='brand'
+				size='small'
+				containerClassName='slds-align_absolute-center slds-p-around_large '
+				containerStyle={{ left: 'unset', right: 'unset' }}
+			/>
+		</div>
+	);
+
+	const UserPanel = () =>
+		isPendingLogout || isPendingUserInfoFetch || !userInfo ? (
+			<Spinner />
 		) : (
 			<>
 				<div className='slds-m-right_small'>
@@ -97,43 +104,43 @@ const TrailheadHeader = () => {
 					className='slds-grid slds-grid_vertical-align-top slds-p-around-small'
 				>
 					<div className='slds-grid slds-grid_vertical-align-center slds-p-around_x-small'>
-						{isAuthenticated && (
+						{(isAuthenticated || isPendingLogout) && (
 							<>
 								<div className='slds-p-right_large slds-m-right_large'>
 									<AppLauncher />
 								</div>
-								{userPanel}
+								<UserPanel />
 							</>
 						)}
-						{!isAuthenticated && (
-							<LDS.Button
-								label='Sign Up'
-								style={
-									isPendingLogin
-										? {
-												borderColor: 'rgba(255, 255, 255, 0.75)',
-												boxShadow: '0 1px 0 rgba(255, 255, 255, 0.75)',
-										  }
-										: {}
-								}
-								variant='brand'
-								onClick={handleSignUp}
-							>
-								{isPendingLogin && (
-									<LDS.Spinner containerStyle={{ borderRadius: '4px' }} size='x-small' />
-								)}
-							</LDS.Button>
-						)}
-						{!isAuthenticated && (
-							<LDS.Button label='Login' onClick={handleLogin}>
-								{isPendingLogin && (
-									<LDS.Spinner
-										containerStyle={{ borderRadius: '4px' }}
-										variant='brand'
-										size='x-small'
-									/>
-								)}
-							</LDS.Button>
+						{!isPendingLogout && !isAuthenticated && (
+							<>
+								<LDS.Button
+									label='Sign Up'
+									style={
+										isPendingLogin
+											? {
+													borderColor: 'rgba(255, 255, 255, 0.75)',
+													boxShadow: '0 1px 0 rgba(255, 255, 255, 0.75)',
+											  }
+											: {}
+									}
+									variant='brand'
+									onClick={handleSignUp}
+								>
+									{isPendingLogin && (
+										<LDS.Spinner containerStyle={{ borderRadius: '4px' }} size='x-small' />
+									)}
+								</LDS.Button>
+								<LDS.Button label='Login' onClick={handleLogin}>
+									{isPendingLogin && (
+										<LDS.Spinner
+											containerStyle={{ borderRadius: '4px' }}
+											variant='brand'
+											size='x-small'
+										/>
+									)}
+								</LDS.Button>
+							</>
 						)}
 					</div>
 				</div>

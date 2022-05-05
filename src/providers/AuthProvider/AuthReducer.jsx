@@ -53,9 +53,9 @@ export const initializeState = _initialState => {
 	return { ...state, ...storedState };
 };
 
-const updateUserState = payload => {
-	const { userInfo, profile, isAuthenticated } = payload || {};
-	let userState = {};
+const updateUserState = state => {
+	const { userInfo, profile, isAuthenticated } = state || {};
+	let userState = { ...state };
 
 	if (!isAuthenticated) {
 		if (!_.isEmpty(userInfo)) {
@@ -85,8 +85,6 @@ export const AuthReducer = (state, action) => {
 	try {
 		const { type: message, payload = {}, error = {} } = action || {};
 
-		console.group('===== AUTH REDUCER =====');
-
 		const createState = ({ newState = {}, msg = message, state = {}, payload = {} }) => {
 			const endState = { ...state, ...newState, ...payload };
 
@@ -102,6 +100,7 @@ export const AuthReducer = (state, action) => {
 
 		const _default = () => createState({ state, newState, payload });
 
+		console.group('===== AUTH REDUCER =====');
 		console.group('===== CURRENT STATE =====');
 		console.log(JSON.stringify(state, null, 2));
 		console.groupEnd();
@@ -123,11 +122,18 @@ export const AuthReducer = (state, action) => {
 			case 'AUTH_STATE_CHECKED':
 			case 'AUTH_STATE_UPDATED':
 				newState = {
-					...updateUserState(payload),
-					isAuthenticated: state?.authState?.isAuthenticated,
+					...state,
+					...payload,
 				};
 
-				return _default();
+				newState.isAuthenticated =
+					newState?.authState?.isAuthenticated || newState?.isAuthenticated;
+
+				newState = {
+					...updateUserState(newState),
+				};
+
+				return createState({ newState });
 
 			// LOGIN
 			case 'LOGIN_CANCELLED':

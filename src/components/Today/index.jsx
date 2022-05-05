@@ -52,7 +52,9 @@ const Today = () => {
 							<circle r='13' cx='21' cy='21'></circle>
 						</clipPath>
 						<image
-							xlinkHref={userInfo?.picture || profile?.picture || 'assets/images/astro.svg'}
+							xlinkHref={
+								userInfo?.picture || profile?.picture || '../../common/assets/images/astro.svg'
+							}
 							alt={userInfo?.nickname || profile?.nickName || 'user avatar'}
 							width='30'
 							height='30'

@@ -52,7 +52,11 @@ const UserMenu = () => {
 												userInfo?.name}
 										</div>
 										<LDS.Avatar
-											imgSrc={profile?.picture ?? userInfo?.picture ?? 'assets/images/astro.svg'}
+											imgSrc={
+												profile?.picture ??
+												userInfo?.picture ??
+												'../../common/assets/images/astro.svg'
+											}
 											imgAlt={profile?.email ?? userInfo?.email}
 											size='medium'
 										/>

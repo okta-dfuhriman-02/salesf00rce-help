@@ -1,9 +1,9 @@
 import { _, Auth, LDS, trailheadBanner, trailheadBasics, trailheadFirstStep } from '../../common';
 
 const Today = () => {
-	const { profile } = Auth.useAuthState();
+	const { userInfo, profile } = Auth.useAuthState();
 
-	const name = profile?.nickName ?? profile?.firstName;
+	const name = userInfo?.nickname ?? userInfo?.given_name;
 
 	return (
 		<div className='root'>
@@ -52,8 +52,8 @@ const Today = () => {
 							<circle r='13' cx='21' cy='21'></circle>
 						</clipPath>
 						<image
-							xlinkHref={profile?.picture || 'assets/images/astro.svg'}
-							alt={profile?.name ?? profile?.nickName ?? 'user avatar'}
+							xlinkHref={userInfo?.picture || profile?.picture || 'assets/images/astro.svg'}
+							alt={userInfo?.nickname || profile?.nickName || 'user avatar'}
 							width='30'
 							height='30'
 							x='6'

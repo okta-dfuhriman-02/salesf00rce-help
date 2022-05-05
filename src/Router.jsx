@@ -7,7 +7,6 @@ import TrailheadHeader from './components/TrailheadHeader';
 import SecureApp from './components/SecureApp';
 import LandingPage from './pages/Landing';
 import TodayPage from './pages/Today';
-import { getUserInfo } from '@okta/okta-auth-js';
 
 const Router = () => {
 	const { authState, oktaAuth } = Okta.useOktaAuth();

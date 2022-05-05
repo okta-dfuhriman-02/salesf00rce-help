@@ -6362,9 +6362,9 @@ a.slds-button--inverse:focus {
 	height: 1.5rem;
 }
 
-.slds-icon-help g {
+/* .slds-icon-help g {
 	mask: url(#questionMark);
-}
+} */
 
 @keyframes slds-click-global-action {
 	25% {
@@ -10832,7 +10832,7 @@ a.slds-button--inverse:focus {
    * @group image
    */
 }
-.slds-brand-band:before {
+/* .slds-brand-band:before {
 	content: '';
 	display: block;
 	position: absolute;
@@ -10845,7 +10845,7 @@ a.slds-button--inverse:focus {
 		linear-gradient(to top, rgba(25, 85, 148, 0) 0, #195594);
 	background-repeat: repeat-x;
 	background-position: top left;
-}
+} */
 .slds-brand-band:after {
 	content: none;
 	display: block;
@@ -10893,12 +10893,12 @@ a.slds-button--inverse:focus {
 .slds-brand-band.slds-brand-band_none:before {
 	height: 0;
 }
-.slds-brand-band.slds-brand-band_group:before {
+/* .slds-brand-band.slds-brand-band_group:before {
 	background-image: url('/assets/images/themes/oneSalesforce/banner-group-public-default.png');
-}
-.slds-brand-band.slds-brand-band_user:before {
+} */
+/* .slds-brand-band.slds-brand-band_user:before {
 	background-image: url('/assets/images/themes/oneSalesforce/banner-user-default.png');
-}
+} */
 .slds-brand-band .slds-brand-band_blank {
 	background: white;
 }
@@ -12165,7 +12165,7 @@ a.slds-button--inverse:focus {
 .slds-popover--walkthrough a {
 	text-decoration: underline;
 }
-.slds-popover_walkthrough .slds-popover__header,
+/* .slds-popover_walkthrough .slds-popover__header,
 .slds-popover--walkthrough .slds-popover__header {
 	background-color: #164a85;
 	background-image: url('/assets/images/popovers/popover-header.png');
@@ -12175,7 +12175,7 @@ a.slds-button--inverse:focus {
 	border-color: inherit;
 	padding: 0.75rem 1rem;
 	text-shadow: 0 0 4px #032e61;
-}
+} */
 .slds-popover_walkthrough .slds-popover__body,
 .slds-popover_walkthrough .slds-popover__footer,
 .slds-popover--walkthrough .slds-popover__body,
@@ -12220,7 +12220,7 @@ a.slds-button--inverse:focus {
  * @restrict .slds-popover_walkthrough
  * @modifier
  */
-.slds-popover_walkthrough-alt,
+/* .slds-popover_walkthrough-alt,
 .slds-popover_feature {
 	border-color: #164a85;
 	background-color: #164a85;
@@ -12230,7 +12230,7 @@ a.slds-button--inverse:focus {
 	background-position: bottom;
 	padding-bottom: 1.5rem;
 	color: white;
-}
+} */
 .slds-popover_walkthrough-alt .slds-text-heading_small,
 .slds-popover_feature .slds-text-heading_small {
 	margin-bottom: 0.5rem;
@@ -15262,14 +15262,14 @@ a.slds-button--inverse:focus {
 .slds-global-header .slds-global-search__form-element .slds-icon {
 	fill: #b0adab;
 }
-.slds-global-header__logo {
+/* .slds-global-header__logo {
 	width: 12.5rem;
 	height: 2.5rem;
 	background-image: url('/assets/images/logo-noname.svg');
 	background-size: contain;
 	background-repeat: no-repeat;
 	background-position: left center;
-}
+} */
 
 /**
  * @summary Global actions component wrapper
@@ -23218,7 +23218,7 @@ a.slds-button--inverse:focus {
 .slds-avatar:focus:hover {
 	color: currentColor;
 }
-.slds-avatar.slds-avatar_group-image-small {
+/* .slds-avatar.slds-avatar_group-image-small {
 	background: url('/assets/images/group_avatar_96.png') top left/cover no-repeat;
 }
 .slds-avatar.slds-avatar_group-image-medium {
@@ -23235,7 +23235,7 @@ a.slds-button--inverse:focus {
 }
 .slds-avatar.slds-avatar_profile-image-large {
 	background: url('/assets/images/profile_avatar_200.png') top left/cover no-repeat;
-}
+} */
 
 /**
  * @name x-small
@@ -25581,7 +25581,7 @@ a.slds-button--inverse:focus {
 	padding-left: 20.5rem;
 }
 
-.slds-einstein-header {
+/* .slds-einstein-header {
 	position: relative;
 	background-color: #95cbfc;
 	background-image: url('/assets/images/einstein-headers/einstein-header-background.svg');
@@ -25593,18 +25593,18 @@ a.slds-button--inverse:focus {
 	padding-top: 0.75rem;
 	padding-bottom: 0.75rem;
 	text-shadow: 0 0 4px #9edaff;
-}
+} */
 .slds-einstein-header .slds-popover__close {
 	color: currentColor;
 }
-.slds-einstein-header__figure,
+/* .slds-einstein-header__figure,
 .slds-einstein-header__figure:last-child {
 	margin-bottom: calc((0.75rem + 5px) * -1);
 	height: 4.75rem;
 	background-image: url('/assets/images/einstein-headers/einstein-figure.svg');
 	background-position: right bottom;
 	background-repeat: no-repeat;
-}
+} */
 .slds-einstein-header__actions {
 	padding-left: 1rem;
 	display: flex;
@@ -26049,7 +26049,7 @@ a.slds-button--inverse:focus {
  * @selector .slds-welcome-mat__info
  * @restrict .slds-welcome-mat__content div
  */
-.slds-welcome-mat__info {
+/* .slds-welcome-mat__info {
 	display: flex;
 	overflow: auto;
 	padding: 1rem 3rem 7.75rem;
@@ -26060,7 +26060,7 @@ a.slds-button--inverse:focus {
 	background-size: contain;
 	background-color: #cae6f1;
 	align-items: center;
-}
+} */
 
 /**
  * @summary Content container for the informational side of the Welcome Mat. Centers in container space.

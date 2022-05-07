@@ -1,4 +1,4 @@
-import { Auth, LDS, aridDunes } from '../../common';
+import { Auth, LDS, isUrl } from '../../common';
 
 import './styles.css';
 
@@ -7,22 +7,24 @@ const PROFILE_APP_URL = process.env.REACT_APP_PROFILE_URL;
 const DropdownCard = () => {
 	const dispatch = Auth.useAuthDispatch();
 	const { logout } = Auth.useAuthActions();
-	const { profile, userInfo } = Auth.useAuthState();
+	const {
+		profile: { nickName, firstName, displayName, picture },
+	} = Auth.useAuthState();
 
 	return (
 		<div className='dropdown-menu' id='dropdown'>
-			<div className='menu__banner' style={{ backgroundImage: `url(${aridDunes})` }} />
+			<div className='menu__banner' />
 			<div
 				className='menu__banner-photo'
 				style={
-					profile?.picture || userInfo?.picture
+					isUrl(picture)
 						? {
-								backgroundImage: `url(${profile?.picture || userInfo?.picture})`,
+								backgroundImage: `url(${picture})`,
 						  }
 						: {}
 				}
 			/>
-			<div className='menu__header'>{userInfo?.name}</div>
+			<div className='menu__header'>{nickName ?? firstName ?? displayName ?? ''}</div>
 			<ul className='menu__items'>
 				<li role='presentation'>
 					<a href={PROFILE_APP_URL} className='menu__item' role='menuitem'>

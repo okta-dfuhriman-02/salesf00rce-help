@@ -29,12 +29,12 @@ export const initializeState = _initialState => {
 	const storedState = _storedState !== null ? JSON.parse(_storedState) : {};
 
 	if (_.isEmpty(storedState)) {
-		const _userInfo = localStorage.getItem('userInfo');
+		const _userInfo = sessionStorage.getItem('userInfo');
 		if (_userInfo !== null) {
 			state.userInfo = JSON.parse(_userInfo);
 		}
 
-		const _user = localStorage.getItem('user');
+		const _user = sessionStorage.getItem('user');
 
 		if (!_.isEmpty(_user)) {
 			const user = _user !== null ? JSON.parse(_user) : {};
@@ -64,7 +64,7 @@ const updateUserState = state => {
 				userInfo: {},
 			};
 
-			localStorage.removeItem('userInfo');
+			sessionStorage.removeItem('userInfo');
 		}
 
 		if (!_.isEmpty(profile)) {
@@ -75,7 +75,7 @@ const updateUserState = state => {
 				linkedUsers: [],
 			};
 
-			localStorage.removeItem('user');
+			sessionStorage.removeItem('user');
 		}
 	}
 	return userState;
@@ -131,6 +131,7 @@ export const AuthReducer = (state, action) => {
 
 				newState = {
 					...updateUserState(newState),
+					isStaleUserInfo: true,
 				};
 
 				return createState({ newState });
@@ -170,7 +171,6 @@ export const AuthReducer = (state, action) => {
 					isPendingLogout: false,
 					...initialLoginState,
 					isLoggedOut: true,
-					...updateUserState(payload),
 				};
 				return _default();
 

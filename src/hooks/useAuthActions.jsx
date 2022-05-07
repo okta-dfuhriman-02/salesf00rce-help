@@ -19,62 +19,63 @@ const idpMap = {
 	[SALESFORCE_IDP_ID]: 'salesforce',
 };
 
-const useAuthActions = () => {
+const useAuthActions = _oktaAuth => {
 	try {
-		const { authState, oktaAuth } = Okta.useOktaAuth();
+		const { authState, oktaAuth } = Okta.useOktaAuth() || { oktaAuth: _oktaAuth };
 
-		const isAuthenticated = async dispatch => {
-			dispatch({ type: 'AUTH_STATE_CHECK_STARTED' });
-
-			const isAuthenticated = await oktaAuth.isAuthenticated();
-
-			console.log('isAuthenticated:', isAuthenticated);
-
-			dispatch({ type: 'AUTH_STATE_CHECKED', payload: { isAuthenticated } });
-
-			return isAuthenticated;
-		};
-
-		const silentAuth = async (dispatch, options) => {
+		const silentAuth = async (
+			dispatch,
+			{ hasSession: _hasSession, isAuthenticated: _isAuthenticated, update = true }
+		) => {
 			try {
 				const config = {};
 
-				// Check if we can get tokens using either a refresh_token or, if our tokens are expired, if getWithoutPrompt works.
-				const _isAuthenticated = await isAuthenticated(dispatch);
+				let isAuthenticated = _isAuthenticated;
+				let authState = {};
+
+				// If are not sure if the user is already authenticated, double check.
+				if (_isAuthenticated === undefined) {
+					// Checks if we can get tokens using either a refresh_token or, if our tokens are expired, if getWithoutPrompt works.
+					isAuthenticated = await oktaAuth.isAuthenticated();
+				}
 
 				let result = { type: 'SILENT_AUTH_ABORTED' };
 
-				if (!_isAuthenticated) {
-					dispatch({ type: 'SILENT_AUTH_STARTED' });
+				if (!isAuthenticated) {
+					if (dispatch) {
+						dispatch({ type: 'SILENT_AUTH_STARTED' });
+					}
 
-					const hasSession = options?.hasSession || (await oktaAuth.session.exists());
+					const hasSession = _hasSession || (await oktaAuth.session.exists());
 
 					if (hasSession) {
 						// Have a session but no tokens in tokenManager.
 						// ** Hail Mary attempt to authenticate via existing session. **
-
-						if (!options) {
-							config.redirectUri = `${window.location.origin}/login/callback`;
-						}
 
 						const { tokens } = await oktaAuth.token.getWithoutPrompt(config);
 
 						if (tokens) {
 							await oktaAuth.tokenManager.setTokens(tokens);
 
-							await oktaAuth.authStateManager.updateAuthState();
-
 							result = {
 								type: 'SILENT_AUTH_SUCCESS',
-								payload: { isAuthenticated: _isAuthenticated },
+								payload: { isAuthenticated },
 							};
+
+							if (update) {
+								authState = await oktaAuth.authStateManager.updateAuthState();
+
+								result.payload = { ...result.payload, authState };
+							}
 						}
 					}
 				}
 
-				dispatch(result);
+				if (dispatch) {
+					dispatch(result);
+				}
 
-				return { isAuthenticated: _isAuthenticated };
+				return { isAuthenticated };
 			} catch (error) {
 				if (dispatch) {
 					console.log(error);
@@ -135,21 +136,48 @@ const useAuthActions = () => {
 					return { ...credential, isLoggedIn };
 				});
 
-				user = { ...user, credentials: _credentials };
+				const _now = Date.now();
+				const _expires = new Date(_now);
 
-				localStorage.setItem('user', JSON.stringify(user));
+				user = {
+					...user,
+					credentials: _credentials,
+					_expires: _expires.setMinutes(_expires.getMinutes() + 10),
+				};
+
+				sessionStorage.setItem('user', JSON.stringify(user));
 
 				return user;
 			}
 		};
 
-		const getUser = async (dispatch, { userId, user: _user }) => {
+		const getUser = async (dispatch, { userId, user: _user, force = false }) => {
 			try {
 				dispatch({
 					type: 'USER_FETCH_STARTED',
 				});
 
-				const user = await getUserSync(userId, _user);
+				let user = {};
+
+				// If 'force' === true, get new data. Otherwise, check sessionStorage first.
+				if (!force) {
+					const storedUserData = sessionStorage.getItem('user');
+
+					if (storedUserData !== null) {
+						user = JSON.parse(storedUserData);
+
+						if (user?._expires < Date.now()) {
+							force = true;
+						}
+					} else {
+						force = true;
+					}
+				}
+
+				// User not found in sessionStorage or manual request for fresh data
+				if (force) {
+					user = await getUserSync(userId, _user);
+				}
 
 				const { profile = {}, credentials = [], linkedUsers = [] } = user || {};
 
@@ -184,7 +212,7 @@ const useAuthActions = () => {
 					delete userInfo.headers;
 				}
 
-				localStorage.setItem('userInfo', JSON.stringify(userInfo));
+				sessionStorage.setItem('userInfo', JSON.stringify(userInfo));
 
 				return userInfo;
 			}
@@ -296,22 +324,6 @@ const useAuthActions = () => {
 			}
 		};
 
-		// const resetPassword = async (dispatch, { username, verificationCode }) => {
-		// 	try {
-		// 		const { status, nextStep: { inputs } } = await oktaAuth.idx.recoverPassword({ username, authenticators: ['okta_email'] });
-
-		// 		const { status, nextStep: { inputs }} = await oktaAuth.idx.proceed({ verificationCode })
-
-		// 	} catch (error) {
-		// 		if (dispatch) {
-		// 			dispatch({ type: actions.recovery.error.type, error });
-		// 		} else {
-		// 			throw new Error(error);
-		// 		}
-		// 	}
-
-		// }
-
 		const logout = (dispatch, postLogoutRedirect) => {
 			let config = {};
 
@@ -324,45 +336,23 @@ const useAuthActions = () => {
 
 			localStorage.removeItem('user');
 
-			return oktaAuth.signOut(config).then(() => dispatch({ type: 'LOGOUT_SUCCEEDED' }));
-		};
+			return oktaAuth.signOut(config).then(() => {
+				sessionStorage.clear();
 
-		const toggleSignUp = (dispatch, isSignUp) =>
-			dispatch({
-				type: 'LOGIN_INIT_SIGN_UP'.type,
-				payload: { isSignUp: !isSignUp },
+				dispatch({ type: 'LOGOUT_SUCCEEDED' });
 			});
-
-		const toggleEmailAuth = (dispatch, { isRecovery, isSignUp, isEmailAuth }) => {
-			if (isRecovery) {
-				dispatch({
-					type: 'LOGIN_INIT_WITH_EMAIL'.type,
-					payload: { isRecovery: !isRecovery, isEmailAuth: false },
-				});
-			} else if (isSignUp) {
-				dispatch({ type: 'LOGIN_INIT_SIGN_UP'.type, payload: { isEmailAuth: !isEmailAuth } });
-			} else {
-				dispatch({
-					type: 'LOGIN_INIT_WITH_EMAIL'.type,
-					payload: { isEmailAuth: !isEmailAuth },
-				});
-			}
 		};
 
 		return {
 			getUserSync,
 			getUser,
 			getUserInfo,
-			isAuthenticated,
 			login,
 			logout,
 			signInWithRedirect,
 			silentAuth,
-			toggleEmailAuth,
-			toggleSignUp,
 		};
 	} catch (error) {
-		// console.error(`init error [${error}]`);
 		throw new Error(`useAuthActions init error [${error}]`);
 	}
 };

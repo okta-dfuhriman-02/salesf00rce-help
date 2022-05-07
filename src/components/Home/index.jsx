@@ -1,4 +1,3 @@
-/* eslint-disable react-hooks/exhaustive-deps */
 import { React, TrailheadConnect, TrailheadEarn, TrailheadLearn } from '../../common';
 import lottie from 'lottie-web';
 

@@ -7,17 +7,25 @@ const CLIENT_ID = process.env.CLIENT_ID_USER_SERVICE;
 const SCOPES = process.env.SCOPES_USER_SERVICE.split(' ');
 const KEY = process.env.PRIVATE_KEY_USER_SERVICE;
 const LINKED_OBJECT_NAME = 'primaryUser';
+const API_KEY = process.env.OKTA_API_TOKEN;
 
 export default class OktaClient extends Client {
 	constructor(config) {
-		super({
-			orgUrl: ORG_URL,
-			authorizationMode: 'PrivateKey',
-			clientId: CLIENT_ID,
-			scopes: SCOPES,
-			privateKey: KEY,
-			...config,
-		});
+		if (config?.useApiKey) {
+			super({
+				orgUrl: ORG_URL,
+				token: API_KEY,
+			});
+		} else {
+			super({
+				orgUrl: ORG_URL,
+				authorizationMode: 'PrivateKey',
+				clientId: CLIENT_ID,
+				scopes: SCOPES,
+				privateKey: KEY,
+				...config,
+			});
+		}
 	}
 
 	async fetch({ baseUrl, url, options }) {

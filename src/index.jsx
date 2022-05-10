@@ -2,10 +2,6 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import { BrowserRouter as Router } from 'react-router-dom';
 
-// import './styles/th.css';
-// import './styles/tds.css';
-// import './styles/root.css';
-// import './styles/fonts.css';
 import App from './App';
 import './styles';
 import reportWebVitals from './reportWebVitals';

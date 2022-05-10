@@ -1,4 +1,4 @@
-import { Auth, LDS, Link, React, TrailheadLogo } from '../../common';
+import { Auth, LDS, Link, React, SalesforceLogo } from '../../common';
 
 import AppLauncher from '../AppLauncher';
 import HeaderNav from './HeaderNav';
@@ -34,11 +34,8 @@ const TrailheadHeader = () => {
 					className='slds-p-vertical_small slds-p-horizontal_medium slds-grid slds-grid_align-spread slds-grow slds-grid_vertical-align-center'
 				>
 					<Link to='/'>
-						<TrailheadLogo style={{ height: '86px' }} />
+						<SalesforceLogo style={{ height: '86px' }} />
 					</Link>
-				</div>
-				<div id='nav-search'>
-					<LDS.Search placeholder='Search' styleContainer={{ width: '100%' }} />
 				</div>
 				<HeaderNav />
 				<div

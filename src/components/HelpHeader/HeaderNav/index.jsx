@@ -16,7 +16,7 @@ const HeaderNav = () => {
 					</li>
 					<li className='nav-list-item nav-list-item'>
 						<button className='nav-list-item__button'>
-							Learn
+							Products
 							<LDS.Icon
 								containerClassName='nav-list-item__arrow'
 								category='utility'
@@ -26,37 +26,14 @@ const HeaderNav = () => {
 						</button>
 					</li>
 					<li className='nav-list-item nav-list-item'>
-						<button className='nav-list-item__button'>
-							Credentials
-							<LDS.Icon
-								containerClassName='nav-list-item__arrow'
-								category='utility'
-								name='chevrondown'
-								size='xx-small'
-							/>
-						</button>
+						<a href='#' className='nav-list-item__link'>
+							Contact Support
+						</a>
 					</li>
 					<li className='nav-list-item nav-list-item--active'>
-						<button className='nav-list-item__button'>
-							Community
-							<LDS.Icon
-								containerClassName='nav-list-item__arrow'
-								category='utility'
-								name='chevrondown'
-								size='xx-small'
-							/>
-						</button>
-					</li>
-					<li className='nav-list-item nav-list-item'>
-						<button className='nav-list-item__button'>
-							For Companies
-							<LDS.Icon
-								containerClassName='nav-list-item__arrow'
-								category='utility'
-								name='chevrondown'
-								size='xx-small'
-							/>
-						</button>
+						<a href='#' className='nav-list-item__link'>
+							My Cases
+						</a>
 					</li>
 				</ul>
 			</nav>

@@ -59,5 +59,6 @@ export {
 	LDS,
 };
 
+export { default as useLockBodyScroll } from '../hooks/useLockBodyScroll';
 export * from './assets/images';
-export { default as ApiError } from './utils/ApiError';
+export * from './utils';

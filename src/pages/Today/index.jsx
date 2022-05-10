@@ -1,5 +1,5 @@
-import Today from '../../components/Today';
+import Help from '../../components/Help';
 
-const TodayPage = () => <Today />;
+const HelpPage = () => <Help />;
 
-export default TodayPage;
+export default HelpPage;

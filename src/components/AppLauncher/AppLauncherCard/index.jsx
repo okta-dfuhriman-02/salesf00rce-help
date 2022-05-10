@@ -10,11 +10,11 @@ import {
 const TRAILHEAD_URL = process.env.REACT_APP_TRAILHEAD_URL;
 const HELP_URL = process.env.REACT_APP_HELP_URL;
 
+// TODO: change <a> into <button> so that we can disable the current app
 const AppLauncherCard = () => (
 	<div className='slds-grid slds-wrap'>
 		<a
 			href={TRAILHEAD_URL}
-
 			className='slds-col slds-size_1-of-3 slds-text-align_center slds-p-vertical_medium slds-show_inline-block tds-app-launcher__item'
 		>
 			<figure>

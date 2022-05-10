@@ -33,3 +33,4 @@ export * from './astro';
 export * from './trailhead-banner';
 export * from './trailhead-first-step';
 export * from './trailhead-basics';
+export * from './help-hero';

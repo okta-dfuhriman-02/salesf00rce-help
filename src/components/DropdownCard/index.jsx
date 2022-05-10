@@ -1,4 +1,4 @@
-import { Auth, LDS, aridDunes } from '../../common';
+import { Auth, LDS, getProfilePicture, getUserName } from '../../common';
 
 import './styles.css';
 
@@ -11,18 +11,14 @@ const DropdownCard = () => {
 
 	return (
 		<div className='dropdown-menu' id='dropdown'>
-			<div className='menu__banner' style={{ backgroundImage: `url(${aridDunes})` }} />
+			<div className='menu__banner' />
 			<div
 				className='menu__banner-photo'
-				style={
-					profile?.picture || userInfo?.picture
-						? {
-								backgroundImage: `url(${profile?.picture || userInfo?.picture})`,
-						  }
-						: {}
-				}
+				style={{
+					backgroundImage: `url(${getProfilePicture(userInfo, profile)})`,
+				}}
 			/>
-			<div className='menu__header'>{userInfo?.name}</div>
+			<div className='menu__header'>{getUserName(userInfo, profile)}</div>
 			<ul className='menu__items'>
 				<li role='presentation'>
 					<a href={PROFILE_APP_URL} className='menu__item' role='menuitem'>
@@ -40,7 +36,7 @@ const DropdownCard = () => {
 					className='menu__item'
 					variant='base'
 					label='Logout'
-					onClick={() => logout(dispatch)}
+					onClick={() => logout(dispatch, { userId: profile?.id ?? userInfo?.sub })}
 				/>
 			</div>
 		</div>

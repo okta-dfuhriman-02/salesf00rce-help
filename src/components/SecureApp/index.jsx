@@ -2,16 +2,16 @@
 import React from 'react';
 import { Outlet } from 'react-router-dom';
 
-import { Auth, LDS, Okta } from '../../common';
+import { Auth, LDS, PropTypes, Okta } from '../../common';
 
 import './styles.css';
 
-const SecureApp = ({ onAuthRequired, children }) => {
-	const { authState, oktaAuth } = Okta.useOktaAuth();
+const SecureApp = ({ header, onAuthRequired, children }) => {
+	const { oktaAuth } = Okta.useOktaAuth();
 
-	const { signInWithRedirect, silentAuth } = Auth.useAuthActions();
+	const { signInWithRedirect } = Auth.useAuthActions();
 	const dispatch = Auth.useAuthDispatch();
-	const { isAuthenticated, isPendingLogin } = Auth.useAuthState();
+	const { isAuthenticated, _initialized, isPendingLogin } = Auth.useAuthState();
 	const pendingLogin = React.useRef(false);
 	React.useEffect(() => {
 		const _isAuthenticated = authState?.isAuthenticated || isAuthenticated;
@@ -23,11 +23,7 @@ const SecureApp = ({ onAuthRequired, children }) => {
 
 			pendingLogin.current = true;
 
-			// try silentAuth before redirecting to login
-			console.debug('SecureApp > trying silentAuth()');
-			const { isAuthenticated: silentIsAuthenticated = false } = (await silentAuth(dispatch)) || {};
-			console.debug('SecureApp > isSilentAuthenticated:', silentIsAuthenticated);
-			if (!silentIsAuthenticated) {
+			if (!isAuthenticated) {
 				const originalUri = Okta.toRelativeUrl(window.location.href, window.location.origin);
 
 				oktaAuth.setOriginalUri(originalUri);
@@ -48,21 +44,33 @@ const SecureApp = ({ onAuthRequired, children }) => {
 			return;
 		}
 
-		if (!_isAuthenticated && !isPendingLogin) {
+		if (_initialized && !isAuthenticated && !isPendingLogin) {
 			console.debug('SecureApp > handleLogin()');
 			handleLogin();
 		}
-	}, [isPendingLogin, authState?.isAuthenticated, isAuthenticated, onAuthRequired]);
+	}, [_initialized, isPendingLogin, isAuthenticated, onAuthRequired]);
 
-	if (!authState?.isAuthenticated || !isAuthenticated) {
+	if (!isAuthenticated) {
 		return <LDS.Spinner variant='inverse' size='large' containerClassName='sign-in-loader' />;
 	}
 
 	if (children) {
 		return children;
 	}
+
 	console.debug('SecureApp > return <Outlet/>');
-	return <Outlet />;
+	return (
+		<>
+			{header}
+			<Outlet />
+		</>
+	);
+};
+
+SecureApp.propTypes = {
+	header: PropTypes.element,
+	onAuthRequired: PropTypes.func,
+	children: PropTypes.node,
 };
 
 export default SecureApp;

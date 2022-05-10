@@ -29,13 +29,15 @@ const AuthProvider = ({ children }) => {
 
 	React.useLayoutEffect(() => {
 		const initAuthState = async () => {
-			let isAuthenticated = (await oktaAuth.isAuthenticated()) || false;
+			if (!oktaAuth.isLoginRedirect()) {
+				let isAuthenticated = (await oktaAuth.isAuthenticated()) || false;
 
-			if (!isAuthenticated && !oktaAuth.isLoginRedirect) {
-				isAuthenticated = await silentAuth(null, { isAuthenticated, update: false });
+				if (!isAuthenticated) {
+					isAuthenticated = await silentAuth(null, { isAuthenticated, update: false });
+				}
+
+				return isAuthenticated;
 			}
-
-			return isAuthenticated;
 		};
 		const handler = authState => dispatch({ type: 'AUTH_STATE_UPDATED', payload: { authState } });
 
@@ -45,7 +47,9 @@ const AuthProvider = ({ children }) => {
 
 		console.log('AuthContext > initAuthState()');
 
-		initAuthState().then(() => oktaAuth.start());
+		initAuthState()
+			.then(() => oktaAuth.start())
+			.finally(() => dispatch({ type: 'APP_INITIALIZED' }));
 
 		return () => oktaAuth.authStateManager.unsubscribe();
 	}, []);
@@ -62,16 +66,16 @@ const AuthProvider = ({ children }) => {
 			userInfo,
 		} = state || {};
 
-		if (isAuthenticated && (!oktaAuth.isLoginRedirect || !isPendingLogin)) {
+		if (isAuthenticated && (!oktaAuth.isLoginRedirect() || !isPendingLogin)) {
 			if (!isPendingUserInfoFetch) {
 				if (isStaleUserInfo || !userInfo) {
-					console.debug('Router > getUserInfo()');
+					console.debug('AuthProvider > getUserInfo()');
 
 					getUserInfo(dispatch);
 				}
 
 				if (userInfo?.sub && !isPendingUserFetch && (isStaleUserProfile || !profile)) {
-					console.debug('Router > getUser()');
+					console.debug('AuthProvider > getUser()');
 
 					getUser(dispatch, { userId: userInfo.sub });
 				}

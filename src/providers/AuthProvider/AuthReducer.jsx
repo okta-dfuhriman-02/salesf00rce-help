@@ -10,74 +10,116 @@ const initialUserState = {
 	isPendingUserInfoFetch: false,
 	isStaleUserProfile: true,
 	isStaleUserInfo: true,
+	profile: {},
+	credentials: [],
+	linkedUsers: [],
+	userInfo: {},
 };
 
 export const initialState = {
 	isError: false,
 	isAuthenticated: false,
-	isLoading: false,
+	isLoading: true,
 	isPendingLogout: false,
 	errors: [],
 	...initialLoginState,
 	...initialUserState,
 };
 
+export const getStoredUser = () => {
+	const _user = sessionStorage.getItem('user');
+
+	if (!_.isEmpty(_user)) {
+		const user = _user !== null ? JSON.parse(_user) : {};
+
+		if (!_.isEmpty(user)) {
+			const { profile = {}, credentials = [], linkedUsers = [] } = user;
+
+			if (user?._expires < Date.now()) {
+				if (!_.isEmpty(user?.profile)) {
+					delete user.profile;
+				}
+
+				if (!_.isEmpty(user?.credentials)) {
+					delete user.credentials;
+				}
+
+				if (!_.isEmpty(user?.linkedUsers)) {
+					delete user.linkedUsers;
+				}
+
+				return {
+					profile: { ...user, ...profile },
+					credentials,
+					linkedUsers,
+				};
+			}
+		}
+	}
+
+	return {};
+};
+
+const getStoredUserInfo = () => {
+	const _userInfo = sessionStorage.getItem('userInfo');
+
+	return _userInfo !== null ? JSON.parse(_userInfo) : {};
+};
+
+const getStoredUserState = () => {
+	let userState = {};
+
+	const user = getStoredUser();
+	const userInfo = getStoredUserInfo();
+
+	if (!_.isEmpty(user?.profile)) {
+		userState = {
+			...userState,
+			...user,
+			isPendingUserFetch: false,
+			isStaleUserProfile: false,
+		};
+
+		if (!_.isEmpty(userInfo)) {
+			userState = {
+				...userState,
+				userInfo,
+				isPendingUserInfoFetch: false,
+				isStaleUserInfo: false,
+			};
+		}
+	}
+
+	return userState;
+};
+
 export const initializeState = _initialState => {
-	const state = { ..._initialState };
+	const state = { ..._initialState, _initialized: false };
 
 	const _storedState = localStorage.getItem('app_state');
 	const storedState = _storedState !== null ? JSON.parse(_storedState) : {};
-
-	if (_.isEmpty(storedState)) {
-		const _userInfo = sessionStorage.getItem('userInfo');
-		if (_userInfo !== null) {
-			state.userInfo = JSON.parse(_userInfo);
-		}
-
-		const _user = sessionStorage.getItem('user');
-
-		if (!_.isEmpty(_user)) {
-			const user = _user !== null ? JSON.parse(_user) : {};
-			const { profile = {}, credentials = [] } = user;
-
-			delete user.profile;
-			delete user.credentials;
-
-			state.profile = { ...user, ...profile };
-			state.credentials = credentials;
-		}
-
-		return state;
-	}
 
 	return { ...state, ...storedState };
 };
 
 const updateUserState = state => {
-	const { userInfo, profile, isAuthenticated } = state || {};
+	const { isAuthenticated } = state || {};
 	let userState = { ...state };
 
-	if (!isAuthenticated) {
-		if (!_.isEmpty(userInfo)) {
-			userState = {
-				...userState,
-				userInfo: {},
-			};
+	if (isAuthenticated) {
+		userState = {
+			...userState,
+			...getStoredUserState(),
+		};
+	} else {
+		sessionStorage.clear();
 
-			sessionStorage.removeItem('userInfo');
-		}
-
-		if (!_.isEmpty(profile)) {
-			userState = {
-				...userState,
-				profile: {},
-				credentials: {},
-				linkedUsers: [],
-			};
-
-			sessionStorage.removeItem('user');
-		}
+		userState = {
+			...userState,
+			...initialUserState,
+		};
 	}
+
 	return userState;
 };
 
@@ -90,7 +132,6 @@ export const AuthReducer = (state, action) => {
 
 			console.group('===== NEW STATE =====');
 			console.log(JSON.stringify(endState, null, 2));
-			console.groupEnd();
 			console.groupEnd();
 
 			return endState;
@@ -108,6 +149,7 @@ export const AuthReducer = (state, action) => {
 		console.group(`===== ${action?.type} =====`);
 		console.log(JSON.stringify(payload, null, 2));
 		console.groupEnd();
+		console.groupEnd();
 
 		if (!_.isEmpty(error)) {
 			console.group('===== ERROR =====');
@@ -116,6 +158,12 @@ export const AuthReducer = (state, action) => {
 		}
 
 		switch (message) {
+			case 'APP_INITIALIZED':
+				newState = {
+					_initialized: true,
+				};
+
+				return _default();
 			case 'AUTH_STATE_CHECK_STARTED':
 				return _default();
 
@@ -132,6 +180,7 @@ export const AuthReducer = (state, action) => {
 				newState = {
 					...updateUserState(newState),
 					isStaleUserInfo: true,
+					isLoading: !!(state?._initialized && newState?.isAuthenticated),
 				};
 
 				return createState({ newState });
@@ -140,6 +189,7 @@ export const AuthReducer = (state, action) => {
 			case 'LOGIN_CANCELLED':
 				newState = {
 					...initialLoginState,
+					isLoading: false,
 				};
 				return _default();
 			case 'LOGIN_CODE_EXCHANGE_STARTED':
@@ -157,6 +207,7 @@ export const AuthReducer = (state, action) => {
 					...initialLoginState,
 					isAuthenticated: true,
 					isStaleUserInfo: true,
+					isLoading: false,
 				};
 				return _default();
 			case 'LOGIN_WITH_REDIRECT_STARTED':
@@ -188,6 +239,7 @@ export const AuthReducer = (state, action) => {
 			case 'SILENT_AUTH_SUCCESS':
 				newState = {
 					...initialLoginState,
+					isLoading: false,
 				};
 				return _default();
 
@@ -221,12 +273,14 @@ export const AuthReducer = (state, action) => {
 			// ERRORS
 			case 'APP_STATE_UPDATE_FAILED':
 			case 'LOGIN_ERROR':
+			case 'LOGOUT_FAILED':
 			case 'SILENT_AUTH_ERROR':
 			case 'USER_FETCH_FAILED':
 			case 'USER_INFO_FETCH_FAILED':
-				console.log('login error:', action);
+				console.error(action);
 				newState = {
 					...initialState,
+					isLoading: false,
 					...updateUserState(),
 					...payload,
 					...{

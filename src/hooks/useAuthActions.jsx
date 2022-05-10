@@ -1,5 +1,6 @@
 /** @format */
-import { Okta } from '../common';
+import { _, Okta } from '../common';
+import { getStoredUser } from '../providers/AuthProvider/AuthReducer';
 
 const GOOGLE_IDP_ID = '0oa3cdpdvdd3BHqDA1d7';
 const LINKEDIN_IDP_ID = '0oa3cdljzgEyGBMez1d7';
@@ -157,25 +158,11 @@ const useAuthActions = _oktaAuth => {
 					type: 'USER_FETCH_STARTED',
 				});
 
+				const storedUser = getStoredUser();
+
 				let user = {};
 
-				// If 'force' === true, get new data. Otherwise, check sessionStorage first.
-				if (!force) {
-					const storedUserData = sessionStorage.getItem('user');
-
-					if (storedUserData !== null) {
-						user = JSON.parse(storedUserData);
-
-						if (user?._expires < Date.now()) {
-							force = true;
-						}
-					} else {
-						force = true;
-					}
-				}
-
-				// User not found in sessionStorage or manual request for fresh data
-				if (force) {
+				if (force || _.isEmpty(storedUser)) {
 					user = await getUserSync(userId, _user);
 				}
 
@@ -185,12 +172,14 @@ const useAuthActions = _oktaAuth => {
 				delete user.credentials;
 				delete user.linkedUsers;
 
+				const payload = { profile: { ...user, ...profile }, credentials, linkedUsers };
+
 				dispatch({
 					type: 'USER_FETCH_SUCCEEDED',
-					payload: { profile: { ...user, ...profile }, credentials, linkedUsers },
+					payload,
 				});
 
-				return user;
+				return payload;
 			} catch (error) {
 				if (dispatch) {
 					console.log(error);
@@ -324,23 +313,41 @@ const useAuthActions = _oktaAuth => {
 			}
 		};
 
-		const logout = (dispatch, postLogoutRedirect) => {
-			let config = {};
+		const logout = async (dispatch, { userId, slo = true, postLogoutRedirect }) => {
+			try {
+				let config = {};
 
-			if (postLogoutRedirect) {
-				config = { postLogoutRedirectUri: postLogoutRedirect };
-			}
-			dispatch({ type: 'LOGOUT_STARTED' });
+				if (postLogoutRedirect) {
+					config = { postLogoutRedirectUri: postLogoutRedirect };
+				}
+				dispatch({ type: 'LOGOUT_STARTED' });
 
-			console.info('executing logout...');
+				console.info('executing logout...');
 
-			localStorage.removeItem('user');
+				// 1) Clear Idp sessions and revoke all tokens
+				if (slo && userId) {
+					const url = `${window.location.origin}/api/v1/users/${userId}/sessions`;
 
-			return oktaAuth.signOut(config).then(() => {
+					const response = await fetch(url, { method: 'DELETE' });
+
+					if (!response.ok) {
+						throw new Error('Unable to clear user sessions!');
+					}
+				}
+
+				// 2) Clear Session Storage
 				sessionStorage.clear();
 
-				dispatch({ type: 'LOGOUT_SUCCEEDED' });
-			});
+				// 3) Do Okta Sign Out, which results in a redirect.
+				return oktaAuth.signOut(config);
+			} catch (error) {
+				if (dispatch) {
+					console.log(error);
+					dispatch({ type: 'LOGOUT_FAILED', error });
+				} else {
+					throw new Error(error);
+				}
+			}
 		};
 
 		return {

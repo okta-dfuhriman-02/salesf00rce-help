@@ -59,6 +59,9 @@ export {
 	LDS,
 };
 
+export * as ReactQuery from 'react-query';
+export * from '../hooks/useUserProfileQuery';
+export * from '../hooks/useUserInfoQuery';
 export { default as useLockBodyScroll } from '../hooks/useLockBodyScroll';
 export * from './assets/images';
 export * from './utils';

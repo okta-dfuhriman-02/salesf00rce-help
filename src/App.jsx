@@ -1,10 +1,28 @@
-import { LDS, React } from './common';
+import { LDS, React, ReactQuery } from './common';
 import AuthProvider from './providers/AuthProvider/AuthContext';
 import { useLocation } from 'react-router-dom';
+import { ReactQueryDevtools } from 'react-query/devtools';
+import { persistQueryClient } from 'react-query/persistQueryClient-experimental';
+import { createWebStoragePersistor } from 'react-query/createWebStoragePersistor-experimental';
 
 import useBodyClass from './hooks/useBodyClass';
 
 import Router from './Router';
+
+const STALE_TIME = process.env.QUERY_STALE_TIME || 2.5; // Time in **MINUTES** to be used when setting the staleTime configuration.
+
+const queryClient = new ReactQuery.QueryClient({
+	defaultOptions: { queries: { staleTime: 1000 * 60 * STALE_TIME } },
+});
+
+const localStoragePersistor = createWebStoragePersistor({ storage: window.localStorage });
+
+persistQueryClient({
+	queryClient,
+	persistor: localStoragePersistor,
+	maxAge: 1000 * 60 * 5,
+	dehydrateOptions: { dehydrateMutations: true, dehydrateQueries: true },
+});
 
 const App = () => {
 	useBodyClass('tds-bg_sand');
@@ -22,11 +40,14 @@ const App = () => {
 
 	return (
 		<React.Suspense fallback={<LDS.Spinner variant='brand' />}>
-			<AuthProvider>
-				<LDS.IconSettings iconPath='/assets/icons'>
-					<Router />
-				</LDS.IconSettings>
-			</AuthProvider>
+			<ReactQuery.QueryClientProvider client={queryClient}>
+				<AuthProvider>
+					<LDS.IconSettings iconPath='/assets/icons'>
+						<Router />
+					</LDS.IconSettings>
+				</AuthProvider>
+				<ReactQueryDevtools initialIsOpen={true} />
+			</ReactQuery.QueryClientProvider>
 		</React.Suspense>
 	);
 };

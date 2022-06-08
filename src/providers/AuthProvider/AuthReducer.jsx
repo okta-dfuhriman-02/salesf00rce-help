@@ -5,122 +5,14 @@ const initialLoginState = {
 	isLoggedOut: false,
 };
 
-const initialUserState = {
-	isPendingUserFetch: false,
-	isPendingUserInfoFetch: false,
-	isStaleUserProfile: true,
-	isStaleUserInfo: true,
-	profile: {},
-	credentials: [],
-	linkedUsers: [],
-	userInfo: {},
-};
-
 export const initialState = {
+	_initialized: false,
 	isError: false,
 	isAuthenticated: false,
 	isLoading: true,
 	isPendingLogout: false,
 	errors: [],
 	...initialLoginState,
-	...initialUserState,
-};
-
-export const getStoredUser = () => {
-	const _user = sessionStorage.getItem('user');
-
-	if (!_.isEmpty(_user)) {
-		const user = _user !== null ? JSON.parse(_user) : {};
-
-		if (!_.isEmpty(user)) {
-			const { profile = {}, credentials = [], linkedUsers = [] } = user;
-
-			if (user?._expires < Date.now()) {
-				if (!_.isEmpty(user?.profile)) {
-					delete user.profile;
-				}
-
-				if (!_.isEmpty(user?.credentials)) {
-					delete user.credentials;
-				}
-
-				if (!_.isEmpty(user?.linkedUsers)) {
-					delete user.linkedUsers;
-				}
-
-				return {
-					profile: { ...user, ...profile },
-					credentials,
-					linkedUsers,
-				};
-			}
-		}
-	}
-
-	return {};
-};
-
-const getStoredUserInfo = () => {
-	const _userInfo = sessionStorage.getItem('userInfo');
-
-	return _userInfo !== null ? JSON.parse(_userInfo) : {};
-};
-
-const getStoredUserState = () => {
-	let userState = {};
-
-	const user = getStoredUser();
-	const userInfo = getStoredUserInfo();
-
-	if (!_.isEmpty(user?.profile)) {
-		userState = {
-			...userState,
-			...user,
-			isPendingUserFetch: false,
-			isStaleUserProfile: false,
-		};
-
-		if (!_.isEmpty(userInfo)) {
-			userState = {
-				...userState,
-				userInfo,
-				isPendingUserInfoFetch: false,
-				isStaleUserInfo: false,
-			};
-		}
-	}
-
-	return userState;
-};
-
-export const initializeState = _initialState => {
-	const state = { ..._initialState, _initialized: false };
-
-	const _storedState = localStorage.getItem('app_state');
-	const storedState = _storedState !== null ? JSON.parse(_storedState) : {};
-
-	return { ...state, ...storedState };
-};
-
-const updateUserState = state => {
-	const { isAuthenticated } = state || {};
-	let userState = { ...state };
-
-	if (isAuthenticated) {
-		userState = {
-			...userState,
-			...getStoredUserState(),
-		};
-	} else {
-		sessionStorage.clear();
-
-		userState = {
-			...userState,
-			...initialUserState,
-		};
-	}
-
-	return userState;
 };
 
 export const AuthReducer = (state, action) => {
@@ -161,6 +53,7 @@ export const AuthReducer = (state, action) => {
 			case 'APP_INITIALIZED':
 				newState = {
 					_initialized: true,
+					isLoading: false,
 				};
 
 				return _default();
@@ -176,12 +69,6 @@ export const AuthReducer = (state, action) => {
 
 				newState.isAuthenticated =
 					newState?.authState?.isAuthenticated || newState?.isAuthenticated;
-
-				newState = {
-					...updateUserState(newState),
-					isStaleUserInfo: true,
-					isLoading: !!(state?._initialized && newState?.isAuthenticated),
-				};
 
 				return createState({ newState });
 
@@ -200,13 +87,13 @@ export const AuthReducer = (state, action) => {
 			case 'LOGOUT_STARTED':
 				newState = {
 					isPendingLogout: true,
+					isLoading: true,
 				};
 				return _default();
 			case 'LOGIN_SUCCESS':
 				newState = {
 					...initialLoginState,
 					isAuthenticated: true,
-					isStaleUserInfo: true,
 					isLoading: false,
 				};
 				return _default();
@@ -245,28 +132,17 @@ export const AuthReducer = (state, action) => {
 
 			// USER FETCH
 			case 'USER_FETCH_STARTED':
-				newState = {
-					isPendingUserFetch: true,
-					isStaleUserProfile: false,
-				};
-				return _default();
+			case 'USER_FETCH_ABORTED':
 			case 'USER_INFO_FETCH_STARTED':
-				newState = {
-					isPendingUserInfoFetch: true,
-					isStaleUserInfo: false,
-				};
 				return _default();
 			case 'USER_FETCH_SUCCEEDED':
 				newState = {
 					...initialLoginState,
-					isPendingUserFetch: false,
 				};
 				return _default();
 			case 'USER_INFO_FETCH_SUCCEEDED':
 				newState = {
 					...initialLoginState,
-					isStaleUserProfile: true,
-					isPendingUserInfoFetch: false,
 				};
 				return _default();
 
@@ -281,7 +157,6 @@ export const AuthReducer = (state, action) => {
 				newState = {
 					...initialState,
 					isLoading: false,
-					...updateUserState(),
 					...payload,
 					...{
 						error,

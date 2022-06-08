@@ -1,4 +1,11 @@
-import { Auth, LDS, getProfilePicture, getUserName } from '../../common';
+import {
+	Auth,
+	LDS,
+	getProfilePicture,
+	getUserName,
+	useUserInfoQuery,
+	useUserProfileQuery,
+} from '../../common';
 
 import './styles.css';
 
@@ -7,7 +14,10 @@ const PROFILE_APP_URL = process.env.REACT_APP_PROFILE_URL;
 const DropdownCard = () => {
 	const dispatch = Auth.useAuthDispatch();
 	const { logout } = Auth.useAuthActions();
-	const { profile, userInfo } = Auth.useAuthState();
+
+	const { data: userInfo } = useUserInfoQuery(dispatch);
+	const { data: user } = useUserProfileQuery({ dispatch, userInfo });
+	const { profile } = user || {};
 
 	return (
 		<div className='dropdown-menu' id='dropdown'>

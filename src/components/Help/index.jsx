@@ -1,7 +1,10 @@
-import { Auth, LDS, getUserName } from '../../common';
+import { Auth, LDS, getUserName, useUserInfoQuery, useUserProfileQuery } from '../../common';
 
 const Help = () => {
-	const { userInfo, profile } = Auth.useAuthState();
+	const dispatch = Auth.useAuthDispatch();
+
+	const { data: userInfo } = useUserInfoQuery(dispatch);
+	const { data: profile } = useUserProfileQuery({ dispatch, userInfo });
 
 	return (
 		<div className='root'>

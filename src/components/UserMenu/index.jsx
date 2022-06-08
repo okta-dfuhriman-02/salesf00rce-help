@@ -1,13 +1,28 @@
-import { Auth, LDS, getProfilePicture, getUserName } from '../../common';
+import {
+	Auth,
+	LDS,
+	getProfilePicture,
+	getUserName,
+	useUserInfoQuery,
+	useUserProfileQuery,
+} from '../../common';
 
 import DropdownCard from '../DropdownCard';
 
 const UserMenu = () => {
-	const { isPendingLogout, isPendingUserInfoFetch, userInfo, profile } = Auth.useAuthState();
+	const dispatch = Auth.useAuthDispatch();
+
+	const { isPendingLogout } = Auth.useAuthState();
+
+	const { isLoading: isLoadingUserInfo, data: userInfo } = useUserInfoQuery(dispatch);
+
+	const { data: user } = useUserProfileQuery({ dispatch });
+
+	const { profile } = user || {};
 
 	return (
 		<>
-			{isPendingLogout || isPendingUserInfoFetch || !userInfo?.sub ? (
+			{isPendingLogout || isLoadingUserInfo || !userInfo?.sub ? (
 				<div
 					className='slds-m-right_small'
 					style={{ position: 'relative', width: '8rem', height: '3rem' }}

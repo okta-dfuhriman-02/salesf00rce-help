@@ -33,8 +33,17 @@ const AuthProvider = ({ children }) => {
 			if (!oktaAuth.isLoginRedirect()) {
 				let isAuthenticated = (await oktaAuth.isAuthenticated()) || false;
 
+				console.group('initAuthState()');
+				console.log('isAuthenticated:', isAuthenticated);
+				console.groupEnd();
+
 				if (!isAuthenticated) {
-					isAuthenticated = await silentAuth(null, { isAuthenticated, update: false });
+					const { isAuthenticated: _isAuthenticated } = await silentAuth(null, {
+						isAuthenticated,
+						update: false,
+					});
+
+					isAuthenticated = _isAuthenticated;
 				}
 
 				return isAuthenticated;
@@ -42,9 +51,11 @@ const AuthProvider = ({ children }) => {
 		};
 
 		const initApp = async (_oktaAuth, _queryClient) => {
-			await initAuthState(_oktaAuth);
+			const isAuthenticated = await initAuthState(_oktaAuth);
 
 			oktaAuth.start();
+
+			dispatch({ type: 'APP_INITIALIZED', payload: { isAuthenticated } });
 		};
 
 		const handler = authState => {
@@ -59,9 +70,9 @@ const AuthProvider = ({ children }) => {
 
 		console.log('AuthContext > initAuthState()');
 
-		initApp(oktaAuth, queryClient)
-			.then(() => dispatch({ type: 'APP_INITIALIZED' }))
-			.catch(error => console.error(`Unable to initialize app! [${error}]`));
+		initApp(oktaAuth, queryClient).catch(error =>
+			console.error(`Unable to initialize app! [${error}]`)
+		);
 
 		return () => oktaAuth.authStateManager.unsubscribe();
 	}, []);

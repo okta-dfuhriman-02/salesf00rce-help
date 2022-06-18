@@ -1,22 +1,13 @@
-import {
-	Auth,
-	LDS,
-	getProfilePicture,
-	getUserName,
-	useUserInfoQuery,
-	useUserProfileQuery,
-} from '../../common';
+import { LDS, Queries, ReactQuery, Utils } from '../../../common';
 
-import DropdownCard from '../DropdownCard';
+import DropdownCard from './DropdownCard';
 
 const UserMenu = () => {
-	const dispatch = Auth.useAuthDispatch();
+	const isPendingLogout = ReactQuery.useIsMutating('logout') > 0;
 
-	const { isPendingLogout } = Auth.useAuthState();
+	const { isLoading: isLoadingUserInfo, data: userInfo } = Queries.useUserInfoQuery();
 
-	const { isLoading: isLoadingUserInfo, data: userInfo } = useUserInfoQuery(dispatch);
-
-	const { data: user } = useUserProfileQuery({ dispatch });
+	const { data: user } = Queries.useUserProfileQuery();
 
 	const { profile } = user || {};
 
@@ -59,10 +50,10 @@ const UserMenu = () => {
 											className='tds-text-size_3 tds-text_bold slds-text-align_right slds-m-right_small slds-truncate'
 											style={{ color: 'black' }}
 										>
-											{getUserName(userInfo, profile)}
+											{Utils.getUserName(userInfo, profile)}
 										</div>
 										<LDS.Avatar
-											imgSrc={getProfilePicture(userInfo, profile)}
+											imgSrc={Utils.getProfilePicture(userInfo, profile)}
 											imgAlt={profile?.email ?? userInfo?.email ?? 'user avatar'}
 											size='medium'
 										/>

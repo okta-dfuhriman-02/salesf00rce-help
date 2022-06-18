@@ -1,11 +1,5 @@
-import {
-	AppExchangeIcon,
-	EventsIcon,
-	HelpPortalIcon,
-	IdeaExchangeIcon,
-	TrailblazerCommunityIcon,
-	TrailheadIcon,
-} from '../../../common';
+/* eslint-disable jsx-a11y/anchor-is-valid */
+import { Icons } from '../../../../common';
 
 const TRAILHEAD_URL = process.env.REACT_APP_TRAILHEAD_URL;
 const HELP_URL = process.env.REACT_APP_HELP_URL;
@@ -18,7 +12,7 @@ const AppLauncherCard = () => (
 			className='slds-col slds-size_1-of-3 slds-text-align_center slds-p-vertical_medium slds-show_inline-block tds-app-launcher__item'
 		>
 			<figure>
-				<TrailheadIcon className='slds-m-bottom_small tds-app-launcher_image' />
+				<Icons.Trailhead className='slds-m-bottom_small tds-app-launcher_image' />
 			</figure>
 			<figcaption className='tds-text-size_3'>Trailhead</figcaption>
 		</a>
@@ -27,7 +21,7 @@ const AppLauncherCard = () => (
 			className='slds-col slds-size_1-of-3 slds-text-align_center slds-p-vertical_medium slds-show_inline-block tds-app-launcher__item'
 		>
 			<figure>
-				<TrailblazerCommunityIcon className='slds-m-bottom_small tds-app-launcher_image' />
+				<Icons.TrailblazerCommunity className='slds-m-bottom_small tds-app-launcher_image' />
 			</figure>
 			<figcaption className='tds-text-size_3'>Trailblazer Community</figcaption>
 		</a>
@@ -36,7 +30,7 @@ const AppLauncherCard = () => (
 			className='slds-col slds-size_1-of-3 slds-text-align_center slds-p-vertical_medium slds-show_inline-block tds-app-launcher__item'
 		>
 			<figure>
-				<AppExchangeIcon className='slds-m-bottom_small tds-app-launcher_image' />
+				<Icons.AppExchange className='slds-m-bottom_small tds-app-launcher_image' />
 			</figure>
 			<figcaption className='tds-text-size_3'>AppExchange</figcaption>
 		</a>
@@ -45,7 +39,7 @@ const AppLauncherCard = () => (
 			className='slds-col slds-size_1-of-3 slds-text-align_center slds-p-vertical_medium slds-show_inline-block tds-app-launcher__item'
 		>
 			<figure>
-				<IdeaExchangeIcon className='slds-m-bottom_small tds-app-launcher_image' />
+				<Icons.IdeaExchange className='slds-m-bottom_small tds-app-launcher_image' />
 			</figure>
 			<figcaption className='tds-text-size_3'>IdeaExchange</figcaption>
 		</a>
@@ -54,7 +48,7 @@ const AppLauncherCard = () => (
 			className='slds-col slds-size_1-of-3 slds-text-align_center slds-p-vertical_medium slds-show_inline-block tds-app-launcher__item'
 		>
 			<figure>
-				<EventsIcon className='slds-m-bottom_small tds-app-launcher_image' />
+				<Icons.Events className='slds-m-bottom_small tds-app-launcher_image' />
 			</figure>
 			<figcaption className='tds-text-size_3'>Events</figcaption>
 		</a>
@@ -63,7 +57,7 @@ const AppLauncherCard = () => (
 			className='slds-col slds-size_1-of-3 slds-text-align_center slds-p-vertical_medium slds-show_inline-block tds-app-launcher__item'
 		>
 			<figure>
-				<HelpPortalIcon className='slds-m-bottom_small tds-app-launcher_image' />
+				<Icons.HelpPortal className='slds-m-bottom_small tds-app-launcher_image' />
 			</figure>
 			<figcaption className='tds-text-size_3'>Salesforce Help</figcaption>
 		</a>

@@ -1,14 +1,13 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 /** @format */
-import { Auth, LDS, useEffect } from '../../common';
+import { LDS, Mutations, React } from '../../common';
 
 export const AppLoginCallback = () => {
-	const dispatch = Auth.useAuthDispatch();
-	const { login } = Auth.useAuthActions();
+	const login = Mutations.useLoginMutation();
 
-	useEffect(() => {
+	React.useEffect(() => {
 		console.debug('LoginCallback > login()');
-		return login(dispatch);
+		return login.mutate();
 	}, []);
 
 	console.debug('LoginCallback > <LDS.Spinner/>');

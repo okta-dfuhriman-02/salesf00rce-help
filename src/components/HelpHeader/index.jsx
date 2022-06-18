@@ -1,18 +1,21 @@
-import { Auth, LDS, Link, React, SalesforceLogo } from '../../common';
+import { Auth, Images, LDS, Mutations, React, ReactQuery, ReactRouter } from '../../common';
 
-import AppLauncher from '../AppLauncher';
+import AppLauncher from './AppLauncher';
 import HeaderNav from './HeaderNav';
-import UserMenu from '../UserMenu';
+import UserMenu from './UserMenu';
 
 import './styles.css';
 
-const TrailheadHeader = () => {
-	const { isAuthenticated, isPendingLogout, isPendingLogin } = Auth.useAuthState();
-	const dispatch = Auth.useAuthDispatch();
-	const { login } = Auth.useAuthActions();
+const HelpHeader = () => {
+	const isPendingLogout = ReactQuery.useIsMutating('logout') > 0;
+	const isPendingLogin = ReactQuery.useIsMutating('login') > 0;
 
-	const handleLogin = () => login(dispatch);
-	const handleSignUp = () => login(dispatch, { isSignUp: true });
+	const { isAuthenticated } = Auth.useAuthState();
+
+	const login = Mutations.useLoginMutation();
+
+	const handleLogin = () => login.mutate();
+	const handleSignUp = () => login.mutate({ isSignUp: true });
 
 	return (
 		<div
@@ -33,9 +36,9 @@ const TrailheadHeader = () => {
 					id='logo'
 					className='slds-p-vertical_small slds-p-horizontal_medium slds-grid slds-grid_align-spread slds-grow slds-grid_vertical-align-center'
 				>
-					<Link to='/'>
-						<SalesforceLogo style={{ height: '86px' }} />
-					</Link>
+					<ReactRouter.Link to='/'>
+						<Images.SalesforceLogo style={{ height: '86px' }} />
+					</ReactRouter.Link>
 				</div>
 				<HeaderNav />
 				<div
@@ -88,4 +91,4 @@ const TrailheadHeader = () => {
 	);
 };
 
-export default TrailheadHeader;
+export default HelpHeader;

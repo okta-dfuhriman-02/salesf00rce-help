@@ -1,6 +1,4 @@
-import { astro } from '../assets/images';
-
-export { default as ApiError } from './ApiError';
+import { Images } from '../index';
 
 export const isUrl = string => {
 	try {
@@ -14,7 +12,7 @@ export const isUrl = string => {
 export const getProfilePicture = (_userInfo, _profile) => {
 	const picture = _profile?.picture ?? _userInfo?.picture;
 
-	return isUrl(picture) ? picture : astro;
+	return isUrl(picture) ? picture : Images.Astro;
 };
 
 export const getUserName = (_userInfo, _profile) => {

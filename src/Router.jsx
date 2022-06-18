@@ -1,23 +1,21 @@
-import { Auth } from './common';
-import { Routes, Route } from 'react-router-dom';
+import { Auth, ReactRouter } from './common';
 
-import AppLoginCallback from './pages/LoginCallback';
-import HelpHeader from './components/HelpHeader';
-import PageSpinner from './components/PageSpinner';
-import SecureApp from './components/SecureApp';
+import { HelpHeader, SecureApp } from './components';
+import AppLoginCallback from './pages/AppLoginCallback';
 import HelpPage from './pages/Help';
+import Loading from './pages/Loading';
 
 const Router = () => {
 	const { isLoading } = Auth.useAuthState();
 
 	return (
 		<>
-			<Routes>
-				<Route path='/login/callback' element={<AppLoginCallback />} />
-				<Route element={<SecureApp header={<HelpHeader />} />}>
-					<Route path='/' element={!isLoading ? <HelpPage /> : <PageSpinner />} />
-				</Route>
-			</Routes>
+			<ReactRouter.Routes>
+				<ReactRouter.Route path='/login/callback' element={<AppLoginCallback />} />
+				<ReactRouter.Route element={<SecureApp header={<HelpHeader />} />}>
+					<ReactRouter.Route path='/' element={!isLoading ? <HelpPage /> : <Loading />} />;
+				</ReactRouter.Route>
+			</ReactRouter.Routes>
 		</>
 	);
 };

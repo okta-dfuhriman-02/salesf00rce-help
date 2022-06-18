@@ -1,33 +1,31 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 /** @format */
-import { useNavigate } from 'react-router-dom';
+import * as React from 'react';
+import * as Okta from '@okta/okta-auth-js';
+import * as OktaReact from '@okta/okta-react';
 
-import { Auth, PropTypes, React, ReactQuery, userInfoQueryFn } from '../../common';
-import { OktaAuth, toRelativeUrl } from '@okta/okta-auth-js';
-import { Security } from '@okta/okta-react';
-import { authConfig } from '../../common/config/authConfig';
-import { AuthReducer, initialState } from './AuthReducer';
+import { Auth, PropTypes, ReactQuery, ReactRouter } from '../../common';
 import AuthDispatchContext from './AuthDispatcher';
+import { authConfig } from '../../common/config/authConfig';
 
 export const AuthStateContext = React.createContext();
 
-const oktaAuth = new OktaAuth(authConfig.oidc);
+const oktaAuth = new Okta.OktaAuth(authConfig.oidc);
 
 const AuthProvider = ({ children }) => {
 	const queryClient = ReactQuery.useQueryClient();
+	const isPendingLogin = ReactQuery.useIsMutating('login') > 0;
 
-	const navigate = useNavigate();
-	const { silentAuth } = Auth.useAuthActions(oktaAuth);
+	const navigate = ReactRouter.useNavigate();
 
 	const restoreOriginalUri = async (_oktaAuth, originalUri) =>
-		navigate(toRelativeUrl(originalUri || '/', window.location.origin), { replace: true });
+		navigate(Okta.toRelativeUrl(originalUri || '/', window.location.origin), { replace: true });
 
 	const customAuthHandler = () => {
 		navigate('/', { replace: true });
 	};
 
-	const [state, dispatch] = React.useReducer(AuthReducer, initialState);
-
+	const [state, dispatch] = React.useReducer(Auth.Reducer, Auth.initialState);
 	React.useLayoutEffect(() => {
 		const initAuthState = async () => {
 			if (!oktaAuth.isLoginRedirect()) {
@@ -38,9 +36,12 @@ const AuthProvider = ({ children }) => {
 				console.groupEnd();
 
 				if (!isAuthenticated) {
-					const { isAuthenticated: _isAuthenticated } = await silentAuth(null, {
-						isAuthenticated,
-						update: false,
+					const { isAuthenticated: _isAuthenticated } = await Auth.silentAuth({
+						oktaAuth,
+						options: {
+							isAuthenticated,
+							update: false,
+						},
 					});
 
 					isAuthenticated = _isAuthenticated;
@@ -78,14 +79,14 @@ const AuthProvider = ({ children }) => {
 	}, []);
 
 	React.useEffect(() => {
-		const { isAuthenticated, isPendingLogin } = state || {};
+		const { isAuthenticated } = state || {};
 
 		if (isAuthenticated && (!oktaAuth.isLoginRedirect() || !isPendingLogin)) {
 			console.log('AuthContext > getUserInfo()');
 
-			queryClient.prefetchQuery(['user', 'info'], () => userInfoQueryFn({ dispatch, oktaAuth }));
+			queryClient.prefetchQuery(['user', 'info'], () => Auth.userInfoQuery({ oktaAuth }));
 		}
-	}, [state?.isAuthenticated, state?.isPendingLogin]);
+	}, [state?.isAuthenticated, isPendingLogin]);
 
 	// eslint-disable-next-line react/jsx-no-constructed-context-values
 	const contextValues = {
@@ -94,13 +95,13 @@ const AuthProvider = ({ children }) => {
 
 	return (
 		<AuthStateContext.Provider value={contextValues}>
-			<Security
+			<OktaReact.Security
 				oktaAuth={oktaAuth}
 				restoreOriginalUri={restoreOriginalUri}
 				onAuthRequired={customAuthHandler}
 			>
 				<AuthDispatchContext.Provider value={dispatch}>{children}</AuthDispatchContext.Provider>
-			</Security>
+			</OktaReact.Security>
 		</AuthStateContext.Provider>
 	);
 };

@@ -17,3 +17,22 @@ body {
 	font-size: 1rem;
 	min-height: 100vh;
 }
+
+*,
+*:before,
+*:after {
+	box-sizing: unset;
+}
+
+#app-launcher-dialog-body > div > a,
+#app-launcher-dialog-body > div > a:before,
+#app-launcher-dialog-body > div > a:after,
+.slds-button,
+.slds-button:before,
+.slds-button:after {
+	box-sizing: border-box;
+}
+
+.slds-combobox {
+	display: block;
+}

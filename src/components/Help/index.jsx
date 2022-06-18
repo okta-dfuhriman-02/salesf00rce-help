@@ -1,10 +1,8 @@
-import { Auth, LDS, getUserName, useUserInfoQuery, useUserProfileQuery } from '../../common';
+import { LDS, Queries, Utils } from '../../common';
 
 const Help = () => {
-	const dispatch = Auth.useAuthDispatch();
-
-	const { data: userInfo } = useUserInfoQuery(dispatch);
-	const { data: profile } = useUserProfileQuery({ dispatch, userInfo });
+	const { data: userInfo } = Queries.useUserInfoQuery();
+	const { data: profile } = Queries.useUserProfileQuery({ userInfo });
 
 	return (
 		<div className='root'>
@@ -15,7 +13,7 @@ const Help = () => {
 						className='hero-container slds-grid slds-grid_vertical slds-align_absolute-center'
 					>
 						<div tabIndex='0' className='hero-user-name slds-col'>
-							Hello, {getUserName(userInfo, profile)}
+							Hello, {Utils.getUserName(userInfo, profile)}
 						</div>
 						<div tabIndex='0' className='hero-search-title slds-col'>
 							How can we help?

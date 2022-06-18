@@ -1,18 +1,14 @@
-import { _ } from '../../common';
+/* eslint-disable no-fallthrough */
+/** @format */
 
-const initialLoginState = {
-	isPendingLogin: false,
-	isLoggedOut: false,
-};
+import { _ } from '../../common';
 
 export const initialState = {
 	_initialized: false,
 	isError: false,
 	isAuthenticated: false,
 	isLoading: true,
-	isPendingLogout: false,
 	errors: [],
-	...initialLoginState,
 };
 
 export const AuthReducer = (state, action) => {
@@ -75,84 +71,37 @@ export const AuthReducer = (state, action) => {
 			// LOGIN
 			case 'LOGIN_CANCELLED':
 				newState = {
-					...initialLoginState,
 					isLoading: false,
-				};
-				return _default();
-			case 'LOGIN_CODE_EXCHANGE_STARTED':
-				newState = {
-					isPendingLogin: true,
-				};
-				return _default();
-			case 'LOGOUT_STARTED':
-				newState = {
-					isPendingLogout: true,
-					isLoading: true,
 				};
 				return _default();
 			case 'LOGIN_SUCCESS':
 				newState = {
-					...initialLoginState,
 					isAuthenticated: true,
 					isLoading: false,
 				};
 				return _default();
-			case 'LOGIN_WITH_REDIRECT_STARTED':
-				newState = {
-					isPendingLogin: true,
-				};
-				return _default();
 
 			// LOGOUT
+			case 'LOGOUT_STARTED':
+				newState = {
+					isLoading: true,
+				};
+				return _default();
 			case 'LOGOUT_SUCCEEDED':
 				newState = {
-					isPendingLogout: false,
-					...initialLoginState,
 					isLoggedOut: true,
 				};
 				return _default();
 
 			// SILENT AUTH
-			case 'SILENT_AUTH_ABORTED':
-				newState = {
-					...initialLoginState,
-				};
-				return _default();
-			case 'SILENT_AUTH_STARTED':
-				newState = {
-					isPendingLogin: true,
-				};
-				return _default();
 			case 'SILENT_AUTH_SUCCESS':
 				newState = {
-					...initialLoginState,
 					isLoading: false,
-				};
-				return _default();
-
-			// USER FETCH
-			case 'USER_FETCH_STARTED':
-			case 'USER_FETCH_ABORTED':
-			case 'USER_INFO_FETCH_STARTED':
-				return _default();
-			case 'USER_FETCH_SUCCEEDED':
-				newState = {
-					...initialLoginState,
-				};
-				return _default();
-			case 'USER_INFO_FETCH_SUCCEEDED':
-				newState = {
-					...initialLoginState,
 				};
 				return _default();
 
 			// ERRORS
 			case 'APP_STATE_UPDATE_FAILED':
-			case 'LOGIN_ERROR':
-			case 'LOGOUT_FAILED':
-			case 'SILENT_AUTH_ERROR':
-			case 'USER_FETCH_FAILED':
-			case 'USER_INFO_FETCH_FAILED':
 				console.error(action);
 				newState = {
 					...initialState,

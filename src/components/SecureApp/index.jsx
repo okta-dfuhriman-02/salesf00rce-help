@@ -1,17 +1,15 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-import React from 'react';
-import { Outlet } from 'react-router-dom';
 
-import { Auth, LDS, PropTypes, Okta } from '../../common';
+import { Auth, LDS, PropTypes, Okta, React, ReactQuery, ReactRouter } from '../../common';
 
 import './styles.css';
 
 const SecureApp = ({ header, onAuthRequired, children }) => {
 	const { oktaAuth } = Okta.useOktaAuth();
 
-	const { signInWithRedirect } = Auth.useAuthActions();
-	const dispatch = Auth.useAuthDispatch();
-	const { isAuthenticated, _initialized, isPendingLogin } = Auth.useAuthState();
+	const isPendingLogin = ReactQuery.useIsMutating('login') > 0;
+
+	const { isAuthenticated, _initialized } = Auth.useAuthState();
 	const pendingLogin = React.useRef(false);
 	React.useEffect(() => {
 		const handleLogin = async () => {
@@ -32,7 +30,7 @@ const SecureApp = ({ header, onAuthRequired, children }) => {
 					await onAuthRequiredFn(oktaAuth);
 				} else {
 					console.debug('SecureApp > signInWithRedirect()');
-					await signInWithRedirect(dispatch);
+					await Auth.signInWithRedirect({ oktaAuth });
 				}
 			}
 		};
@@ -60,7 +58,7 @@ const SecureApp = ({ header, onAuthRequired, children }) => {
 	return (
 		<>
 			{header}
-			<Outlet />
+			<ReactRouter.Outlet />
 		</>
 	);
 };

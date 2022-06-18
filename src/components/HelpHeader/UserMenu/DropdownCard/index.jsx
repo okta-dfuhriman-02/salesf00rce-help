@@ -1,22 +1,14 @@
-import {
-	Auth,
-	LDS,
-	getProfilePicture,
-	getUserName,
-	useUserInfoQuery,
-	useUserProfileQuery,
-} from '../../common';
+import { LDS, Mutations, Queries, Utils } from '../../../../common';
 
 import './styles.css';
 
 const PROFILE_APP_URL = process.env.REACT_APP_PROFILE_URL;
 
 const DropdownCard = () => {
-	const dispatch = Auth.useAuthDispatch();
-	const { logout } = Auth.useAuthActions();
+	const logout = Mutations.useLogoutMutation();
 
-	const { data: userInfo } = useUserInfoQuery(dispatch);
-	const { data: user } = useUserProfileQuery({ dispatch, userInfo });
+	const { data: userInfo } = Queries.useUserInfoQuery();
+	const { data: user } = Queries.useUserProfileQuery({ userInfo });
 	const { profile } = user || {};
 
 	return (
@@ -25,10 +17,10 @@ const DropdownCard = () => {
 			<div
 				className='menu__banner-photo'
 				style={{
-					backgroundImage: `url(${getProfilePicture(userInfo, profile)})`,
+					backgroundImage: `url(${Utils.getProfilePicture(userInfo, profile)})`,
 				}}
 			/>
-			<div className='menu__header'>{getUserName(userInfo, profile)}</div>
+			<div className='menu__header'>{Utils.getUserName(userInfo, profile)}</div>
 			<ul className='menu__items'>
 				<li role='presentation'>
 					<a href={PROFILE_APP_URL} className='menu__item' role='menuitem'>
@@ -46,7 +38,7 @@ const DropdownCard = () => {
 					className='menu__item'
 					variant='base'
 					label='Logout'
-					onClick={() => logout(dispatch, { userId: profile?.id ?? userInfo?.sub })}
+					onClick={() => logout.mutate({ userId: profile?.id ?? userInfo?.sub })}
 				/>
 			</div>
 		</div>

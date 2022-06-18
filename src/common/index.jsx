@@ -1,67 +1,43 @@
-import React, { Fragment, createContext, useEffect, useReducer, useState } from 'react';
-import { Link } from 'react-router-dom';
+// Okta SDKs
+import * as OktaAuthJs from '@okta/okta-auth-js';
+import * as OktaReact from '@okta/okta-react';
 import PropTypes from 'prop-types';
 
-import * as _ from 'lodash';
-
-// Okta SDKs
-import {
-	OktaAuth,
-	toRelativeUrl,
-	removeNils,
-	getOAuthUrls,
-	toQueryString,
-} from '@okta/okta-auth-js';
-import { LoginCallback, SecureRoute, Security, useOktaAuth } from '@okta/okta-react';
-import { authConfig } from './config/authConfig';
-
-import AuthProvider from '../providers/AuthProvider/AuthContext';
-import AuthDispatchContext from '../providers/AuthProvider/AuthDispatcher';
-import useAuthActions from '../hooks/useAuthActions';
-import useAuthDispatch from '../hooks/useAuthDispatch';
+import { AuthReducer, initialState } from '../providers/AuthProvider/AuthReducer';
 import useAuthState from '../hooks/useAuthState';
+import useAuthDispatch from '../hooks/useAuthDispatch';
+import * as Hooks from '../hooks';
 
-import * as LDS from '@salesforce/design-system-react';
+export { Images, Icons } from './assets/images';
 
-const Auth = {
-	Provider: AuthProvider,
-	DispatchContext: AuthDispatchContext,
+export const Auth = {
+	Reducer: AuthReducer,
+	initialState,
+	silentAuth: Hooks.silentAuth,
+	signInWithRedirect: Hooks.signInWithRedirect,
 	useAuthDispatch,
 	useAuthState,
-	useAuthActions,
+	userInfoQuery: Hooks.userInfoQueryFn,
 };
 
-const Okta = {
-	Auth: OktaAuth,
-	LoginCallback,
-	Security,
-	SecureRoute,
-	toRelativeUrl,
-	useOktaAuth,
-	removeNils,
-	getOAuthUrls,
-	toQueryString,
-	config: authConfig,
+export const Okta = {
+	Auth: OktaAuthJs.OktaAuth,
+	...OktaReact,
+	...OktaAuthJs,
 };
 
-export {
-	Auth,
-	React,
-	Fragment,
-	Link,
-	createContext,
-	useEffect,
-	useReducer,
-	useState,
-	Okta,
-	PropTypes,
-	_,
-	LDS,
-};
+export { PropTypes };
 
+export const Mutations = Hooks.Mutations;
+export const Queries = Hooks.Queries;
+export const useLockBodyScroll = Hooks.useLockBodyScroll;
+export const useBodyClass = Hooks.useBodyClass;
+
+export * as _ from 'lodash';
+export * as LDS from '@salesforce/design-system-react';
+export * as React from 'react';
 export * as ReactQuery from 'react-query';
-export * from '../hooks/useUserProfileQuery';
-export * from '../hooks/useUserInfoQuery';
-export { default as useLockBodyScroll } from '../hooks/useLockBodyScroll';
-export * from './assets/images';
-export * from './utils';
+export * as ReactRouter from 'react-router-dom';
+
+export * as Errors from './Errors';
+export * as Utils from './utils';

@@ -1,4 +1,4 @@
-import { Okta, ReactQuery } from '../common';
+import { Errors, Okta, ReactQuery } from '../common';
 
 const getUserInfoAsync = async oktaAuth => {
 	const userInfo = await oktaAuth.getUser();
@@ -12,7 +12,7 @@ const getUserInfoAsync = async oktaAuth => {
 	}
 };
 
-export const userInfoQueryFn = async ({ dispatch, authState, oktaAuth }) => {
+export const userInfoQueryFn = async ({ authState, oktaAuth }) => {
 	const isAuthenticated =
 		authState?.isAuthenticated || (await oktaAuth?.isAuthenticated()) || false;
 
@@ -21,42 +21,25 @@ export const userInfoQueryFn = async ({ dispatch, authState, oktaAuth }) => {
 	}
 
 	try {
-		if (dispatch) {
-			dispatch({
-				type: 'USER_INFO_FETCH_STARTED',
-			});
-		} else {
-			console.log('no dispatch!');
-		}
-
 		const userInfo = await getUserInfoAsync(oktaAuth);
-
-		if (dispatch) {
-			dispatch({ type: 'USER_INFO_FETCH_SUCCEEDED' });
-		}
 
 		return userInfo;
 	} catch (error) {
-		if (dispatch) {
-			console.log(error);
-			dispatch({ type: 'USER_INFO_FETCH_FAILED', error });
-		} else {
-			throw new Error(error);
-		}
+		throw new Errors.AppError({ type: 'USER_INFO_FETCH_FAILED', error });
 	}
 };
 
-export const useUserInfoQuery = dispatch => {
+export const useUserInfoQuery = () => {
 	try {
 		const oktaAuth = Okta.useOktaAuth();
 
 		const isPendingAccountLink = ReactQuery.useIsMutating(['account-link']);
 
-		return ReactQuery.useQuery(['user', 'info'], () => userInfoQueryFn({ dispatch, ...oktaAuth }), {
+		return ReactQuery.useQuery(['user', 'info'], () => userInfoQueryFn({ ...oktaAuth }), {
 			retry: 6,
 			enabled: isPendingAccountLink === 0,
 		});
 	} catch (error) {
-		throw new Error(`useUserQuery init error [${error}]`);
+		throw new Errors.AppError({ type: 'USER_QUERY_INIT_FAILED', error });
 	}
 };

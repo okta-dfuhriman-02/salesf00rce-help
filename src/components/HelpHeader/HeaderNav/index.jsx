@@ -1,3 +1,4 @@
+/* eslint-disable jsx-a11y/anchor-is-valid */
 import { Auth, LDS } from '../../../common';
 import './styles.css';
 
